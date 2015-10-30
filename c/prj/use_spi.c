@@ -2,8 +2,6 @@
 #include "delay.h"
 #include "spi.h"
 
-#define led 1
-
 int main( void )
 {
   CLK->CKDIVR &= ~CLK_CKDIVR_HSIDIV;
