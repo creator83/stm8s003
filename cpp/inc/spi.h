@@ -15,7 +15,7 @@ public:
   enum Role {slave , master};
   enum Cpol {neg, pos};
   enum Cpha {falling, rising};
-  enum pin_def {CS = 4 , SCK = 5, MOSI , MISO };
+  enum pin_def {CS = 4 , SCK, MOSI , MISO };
 private:
   Gpio pin;
   
@@ -24,9 +24,9 @@ public:
   spi(Division div, Cpol cpl = neg, Cpha cph = falling, Role r = master);
   void Set_CS ();
   void Clear_CS ();
-  uint8_t transfer (uint8_t data);
-  //uint16_t transfer_16 (uint8_t data1 , uint8_t data2);
-  void transfer_16 (uint16_t data);
+  void transmit (uint8_t data);
+  uint8_t receive ();
+  uint8_t exchange (uint8_t data);
 private:
 };
 

@@ -10,10 +10,10 @@ class Gpio
   //variables
 public:
   enum Port {A , B , C , D};
-  enum mode {Input , Output};
+  enum PP {Floating , Pullup};
+  enum Interrupt {Off , On};
   enum speed {Low,High};
   enum out {OpenDrain , PushPull};
-  enum in {Floating , Pullup};
   enum rgstr {
   ODR ,
   IDR ,
@@ -27,9 +27,8 @@ private:
   //functions
 public:
   Gpio(Port p );
-  Gpio(uint8_t p );
-  void setOutPin (unsigned char pin , mode m = Output , speed s = Low , out o = PushPull);
-  void setIntrpt (unsigned char pin , in i);
+  void setOutPin (unsigned char pin , speed s = Low , out o = PushPull);	
+  void setInPin (unsigned char pin,  PP p=Floating, Interrupt i=Off);
   void setPin (unsigned int pin );
   void clearPin (unsigned char pin);	
   void setValPort (unsigned int value);	

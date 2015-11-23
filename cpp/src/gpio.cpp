@@ -1,22 +1,16 @@
 #include "gpio.h"
 
-unsigned int Gpio::portAdr [4] = {GPIOA_BaseAddress , 0x5004 , 0x5009, 0x500E};
+unsigned int Gpio::portAdr [4] = {GPIOA_BaseAddress , GPIOB_BaseAddress , 0x5009, 0x500E};
 
 Gpio::Gpio(Port p )
 {
   prt = p;
 }
 
-Gpio::Gpio(uint8_t p )
+void Gpio::setOutPin (unsigned char pin , speed s  , out o )
 {
-  prt = p;
-}
-
-void Gpio::setOutPin (unsigned char pin , mode m , speed s  , out o )
-{
-  //настройка вход/выход
-  *(reg)(portAdr[prt]+DDR) &= ~(1 << pin);
-  *(reg)(portAdr[prt]+DDR) |= m << pin;
+  //настройка выход
+  *(reg)(portAdr[prt]+DDR) |= 1 << pin;
   
   //настройка скорости
   *(reg)(portAdr[prt]+CR2) &= ~(1 << pin);
@@ -27,14 +21,18 @@ void Gpio::setOutPin (unsigned char pin , mode m , speed s  , out o )
   *(reg)(portAdr[prt]+CR1) |= o << pin;  
 }
 
-void Gpio::setIntrpt (unsigned char pin , in i)
+void Gpio::setInPin (unsigned char pin ,  PP p, Interrupt i)
 {
-  //Очистка регистров CR1 и DDR
+  //настройка вход
   *(reg)(portAdr[prt]+DDR) &= ~(1 << pin);
+  
+  //настройка подтяжки Floating/Pull-up
   *(reg)(portAdr[prt]+CR1) &= ~(1 << pin);
-  //Настройка Pullup , floating
-  *(reg)(portAdr[prt]+CR1) |= (i << pin);
-  *(reg)(portAdr[prt]+CR2) |= (1 << pin);
+  *(reg)(portAdr[prt]+CR1) |= p << pin; 
+  
+  //настройка прерывания
+  *(reg)(portAdr[prt]+CR2) &= ~(1 << pin);
+  *(reg)(portAdr[prt]+CR2) |= i << pin;
 }
 
 void Gpio::setPin (unsigned int pin )

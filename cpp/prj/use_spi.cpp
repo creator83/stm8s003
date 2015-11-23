@@ -1,12 +1,16 @@
 #include "stm8s.h"
 #include "spi.h"
 #include "delay.h"
+#include "tact.h"
+
+tact frq;
 
 int main()
 {
-  CLK->CKDIVR = 0;
+  
   spi spi1 (spi::div4);
-  spi1.transfer (0x0F);
+  spi1.transmit (0xF0);
+  
   //  spi1.transfer_16 (0xF000);  
   while (1)
   {

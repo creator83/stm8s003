@@ -9,12 +9,12 @@ class uart
 {
 //variables
 public:
-  enum baud {baud9600 , baud38400 , baud57600 , baud115200};
-  enum role {Transmitter , Receiver};
-  enum pin_def {TX = 5 , RX};
+  enum baud {b9600 , b57600 , div8 , div16 , div32 , div64 , div128 , div256};
+  enum pin {TX = 5 , RX};
 private:
   Gpio pin;
-  static uint32_t sp[4];
+  static uint16_t speed [2];
+  uint16_t brr_val;
  //function
 public:
   uart(baud b);
