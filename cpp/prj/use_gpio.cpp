@@ -12,6 +12,6 @@ int main()
   while (1)
   {
     A.ChangePinState (3);
-    delay_ms (1000);
+    delay_ms (500);
   }
 }

@@ -31,17 +31,15 @@ void spi_init (void)
   SPI->CR1 |= div8 << 3;
   
   //SPI clock mode
-  SPI->CR1 &= ~SPI_CR1_CPOL;
-  SPI->CR1 |= SPI_CR1_CPHA;
+  //SPI->CR1 |= SPI_CR1_CPOL;
+  //SPI->CR1 |= SPI_CR1_CPHA;
     
   //Master selection
   SPI->CR1 |= SPI_CR1_MSTR;
   
   //Soft managment CS
   SPI->CR2 |= SPI_CR2_SSM|SPI_CR2_SSI;
-      
-    
-  
+         
   //Turn on SPI
   SPI->CR1 |= SPI_CR1_SPE;
 }
