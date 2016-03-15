@@ -1,6 +1,6 @@
 #include "gpio.h"
 
-unsigned int Gpio::portAdr [4] = {GPIOA_BaseAddress , GPIOB_BaseAddress , 0x5009, 0x500E};
+unsigned int Gpio::portAdr [4] = {GPIOA_BaseAddress , GPIOB_BaseAddress , GPIOC_BaseAddress, GPIOD_BaseAddress};
 
 Gpio::Gpio(Port p )
 {
