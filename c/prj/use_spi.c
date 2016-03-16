@@ -7,13 +7,13 @@ int main( void )
   CLK->CKDIVR &= ~CLK_CKDIVR_HSIDIV;
   CLK->CKDIVR &= ~CLK_CKDIVR_CPUDIV;
   spi_init ();
-  
+  spi_tr_byte (0x06);
   
   while (1)
-  {
+  {/*
     spi_tr_byte (0x0F);
     delay_ms (1000);
     spi_tr_byte (0xF0);
-    delay_ms (1000);    
+    delay_ms (1000);   */ 
   }
 }

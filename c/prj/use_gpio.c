@@ -1,14 +1,15 @@
 #include "stm8s.h"
 #include "delay.h"
 
-#define led 4
-#define PORT GPIOB
+#define led  3
+#define PORT GPIOC
 
 int main( void )
 {
   CLK->CKDIVR &= ~CLK_CKDIVR_HSIDIV;
   CLK->CKDIVR &= ~CLK_CKDIVR_CPUDIV;
   PORT->DDR |= 1 << led;
+  
   PORT->CR1 |= 1 << led;
   
   

@@ -3,7 +3,7 @@
 #ifndef GPIO_H
 #define GPIO_H
 
-typedef uint16_t* reg;
+typedef uint8_t* reg;
 
 class Gpio
 {

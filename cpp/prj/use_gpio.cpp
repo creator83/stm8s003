@@ -5,13 +5,13 @@
 int main()
 {
   CLK->CKDIVR = 0;
-  Gpio A (Gpio::A);
-  A.setOutPin(3);
+  Gpio B (Gpio::B);
+  B.setOutPin(4);
 
   
   while (1)
   {
-    A.ChangePinState (3);
-    delay_ms (1000);
+    B.ChangePinState (4);
+    delay_ms (500);
   }
 }
