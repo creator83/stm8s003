@@ -6,7 +6,7 @@ tact::tact ()
 {
   init_hsi ();
   CLK->CKDIVR = 0;
-  f_cpu = 8;
+  f_cpu = 16;
 }
 
 void tact::init_hsi ()

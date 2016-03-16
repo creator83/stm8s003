@@ -4,7 +4,7 @@
 #ifndef SPI_H
 #define SPI_H
 
-typedef uint16_t* reg;
+typedef uint8_t* reg;
 
 
 class spi
