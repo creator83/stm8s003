@@ -30,15 +30,38 @@ int main()
 {
 
   nrf24l01 radio;
-  bin (radio.r_reg (CONFIG));
+  uart1.transmit (radio.r_reg (CONFIG));
+  radio.change_bit (CONFIG, PRIM_RX, 0);
+  uart1.transmit ("===");
+  delay_ms (2000);
+  uart1.transmit (radio.r_reg (CONFIG));
+  uart1.transmit ("///");
+  
+  /*
+  radio.change_bit (CONFIG, PRIM_RX, 1);
+  delay_ms (2000);
+  uart1.transmit ("====");
+  uart1.transmit (radio.r_reg (CONFIG));
+  uart1.transmit ("====");
+  uart1.transmit (radio.r_status());*/
+  
+  /*bin (radio.r_reg (CONFIG));
   delay_ms (2000);
   radio.change_bit (CONFIG, PRIM_RX, 1);
   delay_ms (2000);
   uart1.transmit ("====");
   bin (radio.r_reg (CONFIG));
-  
+  uart1.transmit ("====");
+  bin (radio.r_status()); */ 
   while (1)
   {
+    
+    uart1.transmit ("   CONFIG=");
+    bin (radio.r_reg (CONFIG));
+    delay_ms (500);
+    uart1.transmit ("   STATUS=");
+    bin (radio.r_status());
+    delay_ms (500);    
   }
 }
 

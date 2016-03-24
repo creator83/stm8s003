@@ -8,7 +8,7 @@ spi::spi(Division div, Cpol cpl , Cpha cph , Role r )
   pin.setOutPin (CS , Gpio::Low);
   pin.setOutPin (SCK , Gpio::High);
   pin.setOutPin (MOSI , Gpio::High);
-  pin.setInPin (MISO);
+  pin.setInPin (MISO,Gpio::Pullup);
   pin.setPin (CS);
   
   //настройка SPI
