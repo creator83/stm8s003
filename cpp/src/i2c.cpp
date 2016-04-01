@@ -41,3 +41,52 @@ void i2c::init_master (uint8_t speed)
   //Разрешаем подтверждение в конце посылки
   I2C->CR2 |= I2C_CR2_ACK;
 }
+
+uint8_t i2c::wr_reg (uint8_t adress, uint8_t reg, uint8_t *data, uint8_t l)
+{
+  //Ждем освобождения шины I2C
+  delay_ms (10);
+  while (I2C->SR3 & (1<<I2C_SR3_BUSY));
+    
+  //Генерация СТАРТ-посылки
+  I2C->CR2 |= I2C_CR2_START;
+  //Ждем установки бита SB
+  delay_ms (1);
+  while(!(I2C->SR1 & I2C_SR1_SB));
+  
+  
+  //Записываем в регистр данных адрес ведомого устройства
+  I2C->DR = adress & 0xFE;
+  //Ждем подтверждения передачи адреса
+  delay_ms (1);
+  while(!(I2C->SR1 &I2C_SR1_ADDR));
+  //Очистка бита ADDR чтением регистра SR3
+  I2C_SR3;
+  
+  
+  //Ждем освобождения регистра данных
+  wait_event(!I2C_SR1_TXE, 1);
+  //Отправляем адрес регистра
+  I2C_DR = reg_addr;
+  
+  //Отправка данных
+  while(length--){
+    //Ждем освобождения регистра данных
+    wait_event(!I2C_SR1_TXE, 1);
+    //Отправляем адрес регистра
+    I2C_DR = *data++;
+  }
+  
+  //Ловим момент, когда DR освободился и данные попали в сдвиговый регистр
+  wait_event(!(I2C_SR1_TXE && I2C_SR1_BTF), 1);
+  
+  //Посылаем СТОП-посылку
+  I2C_CR2_STOP = 1;
+  //Ждем выполнения условия СТОП
+  wait_event(I2C_CR2_STOP, 1);
+  
+  return I2C_SUCCESS;
+  return 0;
+}
+
+

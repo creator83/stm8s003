@@ -1,6 +1,7 @@
 #include "stm8s.h"
 #include "gpio.h"
 #include "tact.h"
+#include "delay.h"
 
 #ifndef I2C_H
 #define I2C_H
@@ -17,6 +18,7 @@ class i2c
 public:
 
   enum mode {master,slave};
+  
 private:
   Gpio pin;
   static const init init_mode [2];
@@ -26,6 +28,7 @@ private:
  //function
 public:
   i2c(mode m, speed d = standart);
+  uint8_t wr_reg (uint8_t adress, uint8_t reg, uint8_t *data, uint8_t l);
 
 private:
   void init_master (uint8_t speed);

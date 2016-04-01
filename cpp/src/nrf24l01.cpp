@@ -34,6 +34,13 @@ void nrf24l01::change_bit (uint8_t reg, uint8_t bit, bool state)
   else val = val&(~(1 << bit));
   w_reg (reg, val);
 }
+uint8_t nrf24l01::get_status ()
+{
+  spi1.Clear_CS();
+  uint8_t status = spi1.exchange (NOP);
+  spi1.Set_CS ();
+  return status;  
+}
 
 void nrf24l01::init ()
 {
