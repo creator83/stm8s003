@@ -27,7 +27,7 @@ uint8_t nrf24l01::r_reg (uint8_t reg)
   return status;  
 }
 
-uint8_t nrf24l01::r_status ()
+uint8_t nrf24l01::get_status ()
 {
   spi1.Clear_CS();
   uint8_t status = spi1.exchange (NOP);

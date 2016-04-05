@@ -113,7 +113,7 @@ public:
   void mode (state st);
   uint8_t w_reg (uint8_t reg , uint8_t val);
   uint8_t r_reg (uint8_t reg); 
-  uint8_t r_status ();
+  uint8_t get_status ();
   void change_bit (uint8_t reg, uint8_t bit, bool state);
 private:
 
