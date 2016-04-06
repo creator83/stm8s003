@@ -21,7 +21,7 @@ spi::spi(Division div, Cpol cpl , Cpha cph , Role r )
 
 void spi::transmit (uint8_t data)
 {
-  while (!(SPI->SR&SPI_SR_TXE));
+  while (SPI->SR&SPI_SR_BSY);
   SPI->DR = data;
 }
 
@@ -36,7 +36,7 @@ void spi::Clear_CS ()
 
 uint8_t spi::receive ()
 {
-  while (!(SPI->SR&SPI_SR_TXE));
+  while (SPI->SR&SPI_SR_BSY);
   SPI->DR = 0;
   while (!(SPI->SR&SPI_SR_RXNE));
   return SPI->DR;
@@ -44,7 +44,7 @@ uint8_t spi::receive ()
 
 uint8_t spi::exchange (uint8_t data)
 {
-  while (!(SPI->SR&SPI_SR_TXE));
+  while (SPI->SR&SPI_SR_BSY);
   SPI->DR = data;
   while (!(SPI->SR&SPI_SR_RXNE));
   return SPI->DR;

@@ -24,12 +24,16 @@ __interrupt void EXTI_PORTB_IRQHandler()
   ++i;
 }
 */
-void bin (uint8_t data);
+
+
 
 int main()
 {
 
   nrf24l01 radio;
+  uart1.transmit (radio.init());
+  uart1.transmit (radio.count);
+  /*
   for (uint8_t i = 0;i<5;++i)
   {
     uart1.transmit (radio.get_status());
@@ -40,7 +44,7 @@ int main()
   {
     uart1.transmit (radio.r_reg (CONFIG));
   }  
-  /*
+ 
   uart1.transmit ("   ");
   delay_ms (1000);  
   radio.change_bit (CONFIG, PWR_UP, 1);

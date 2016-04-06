@@ -86,7 +86,7 @@ const uint8_t NOP          = 0xFF;
 const uint8_t REGISTER_MASK = 0x1F;
 
 
-//Значения ножек
+//Значения пинов
 const uint8_t irq_ = 2;
 const uint8_t ce_ = 3;
 
@@ -96,15 +96,16 @@ class nrf24l01
 {
 //variables
 public:
-
+  uint8_t count;
   enum state {transmitter , receiver};  
 private:
   
   Gpio pin;
   spi spi1;
   //intrpt irq;
-
-  
+  static uint8_t self_addr[5] ;
+  static uint8_t remote_addr[5];
+  uint8_t chan;
   //functions
 public:
 
@@ -115,13 +116,14 @@ public:
   uint8_t r_reg (uint8_t reg); 
   uint8_t get_status ();
   void change_bit (uint8_t reg, uint8_t bit, bool state);
+  uint8_t init ();
 private:
 
- 
+  
   uint8_t command (uint8_t mask);
   void set_bit (uint8_t reg_ister, uint8_t register_bit, uint8_t W);
   void write_data (uint8_t data);
-  void init ();
+  
 };
 
 
