@@ -7,7 +7,6 @@ int main()
   CLK->CKDIVR = 0;
   Gpio B (Gpio::B);
   B.setOutPin(4);
-
   
   while (1)
   {

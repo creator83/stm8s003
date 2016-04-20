@@ -97,7 +97,7 @@ class nrf24l01
 //variables
 public:
   uint8_t count;
-  enum state {transmitter , receiver};  
+  enum mode {TXmode , RXmode, PWR_DOWN, STANDBY_1, STANDBY_2};  
 private:
   
   Gpio pin;
@@ -110,13 +110,15 @@ private:
 public:
 
   nrf24l01 ();
+  bool startup;
   uint8_t read_data ();
-  void mode (state st);
+  void mode (mode st);
   uint8_t w_reg (uint8_t reg , uint8_t val);
   uint8_t r_reg (uint8_t reg); 
   uint8_t get_status ();
-  void change_bit (uint8_t reg, uint8_t bit, bool state);
-  uint8_t init ();
+  void change_bit (uint8_t reg, uint8_t bit, bool state_);
+  bool init ();
+  //uint8_t state;
 private:
 
   

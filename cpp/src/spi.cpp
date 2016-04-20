@@ -21,8 +21,8 @@ spi::spi(Division div, Cpol cpl , Cpha cph , Role r )
 
 void spi::transmit (uint8_t data)
 {
-  while (SPI->SR&SPI_SR_BSY);
   SPI->DR = data;
+  while (SPI->SR&SPI_SR_BSY);
 }
 
 void spi::Set_CS ()
