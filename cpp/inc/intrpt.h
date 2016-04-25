@@ -23,7 +23,7 @@ public:
 
   intrpt (Port p , uint8_t gp , sense s);
   intrpt (uint8_t p , uint8_t gp , sense s);
-  
+  bool check_int (uint8_t p);
 
 private:
   

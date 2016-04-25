@@ -11,29 +11,23 @@ extern "C" {
     __interrupt void EXTI_PORTB_IRQHandler();
 }
 */
-
-
+tact frq;
+const uint8_t led = 4;
+const uint8_t button = 3;
 Gpio D (Gpio::D);
 
-#pragma vector = 6
-__interrupt void EXTI_PORTB_IRQHandler()
+INTERRUPT_HANDLER(inerrupt, EXTI0_vector)
 {
-  D.setPin (3);
+  D.setPin (led);
   delay_ms (1500);
-  D.clearPin (3);
+  D.clearPin (led);
 }
 
 int main()
 {
-  tact frq;
-  D.setOutPin (3);
-/*  GPIOB->DDR &= ~ (1 << 5);
-  GPIOB->CR1 &= ~ (1 << 5);
-  GPIOB->CR2 |= (1 << 5);
-  EXTI->CR1 |= 1 << 2;
-  __enable_interrupt ();*/
   
-  intrpt intrB (intrpt::B , 5 , intrpt::rising);
+  D.setOutPin (led);
+  intrpt intrA (intrpt::A , button , intrpt::falling);
   
   while (1)
   {
