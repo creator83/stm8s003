@@ -9,40 +9,36 @@
 tact frq;
 uart uart1 (uart::b9600);
 nrf24l01 radio;
-/*
-INTERRUPT_HANDLER(inerrupt, EXTI0_vector)
-{
-  uart1.transmit (radio.check_radio());
-}
-
-
+const uint8_t led = 3;
 Gpio D (Gpio::D);
 
-  
-extern "C" {
-    __interrupt void EXTI_PORTB_IRQHandler();
+
+INTERRUPT_HANDLER(EXTA_i, EXTI0_vector)
+{
+   uint8_t status = radio.get_status ();
+   uart1.transmit (status);
+   radio.w_reg (STATUS, status);
+   status = radio.get_status ();
+   uart1.transmit (status);
+  D.setPin (led);
+  delay_ms (1500);
+  D.clearPin (led);
 }
 
-#pragma vector = 6
-__interrupt void EXTI_PORTB_IRQHandler()
-{
-  static char i=0;
-  D.ChangePinState (3);
-  radio.transmit (i);
-  ++i;
-}
-*/
 
 
 
 int main()
 {
-  uart uart1 (uart::b9600);
-  nrf24l01 radio;
+  D.setOutPin (led);
+  radio.send_byte (125);
   while (1)
   {  
-    radio.send_byte (122);
-    delay_ms (1000);
+    /*for (uint8_t i=0;i<100;++i)
+    {
+      radio.send_byte (i);
+      delay_ms (500);
+    }*/
   }
 }
 

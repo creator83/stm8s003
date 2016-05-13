@@ -10,6 +10,7 @@ nrf24l01::nrf24l01 ()
   chan = 3;
   delay_ms (15);
   pin.setOutPin (ce_);
+  pin.setInPin (irq_);
   if (init ())
   {
     delay_ms (15);
@@ -169,15 +170,28 @@ bool nrf24l01::send_data (uint8_t * buf, uint8_t size)
   return true;
 }
 
-bool nrf24l01::send_byte (uint8_t data_)
+void nrf24l01::send_byte (uint8_t data_)
 {
   stanby1_state();
-  uint8_t status = get_status ();
+  //uint8_t status = get_status ();
   // Если очередь передатчика заполнена, возвращаемся с ошибкой
-  if (status & (1 << TX_FULL)) return false;
-  w_data (data_);
+  //if (status & (1 << TX_FULL)) return false;
+  //w_data (data_);
+/*  w_reg (W_TX_PAYLOAD, data_);
   tx_state ();
-  return true;
+  while (pin.pin_state (irq_));
+  uint8_t s = get_status ();
+  w_reg (STATUS, s);*/
+  spi1.Clear_CS();
+  spi1.put_data (W_TX_PAYLOAD);
+  while (!spi1.flag_rxne());
+  uint8_t status = spi1.get_data();
+  while (!spi1.flag_txe());
+  spi1.put_data (data_);
+  while (!spi1.flag_bsy());
+  spi1.Set_CS ();
+  tx_state ();
+  
 }
 
 uint8_t nrf24l01::get_status ()
@@ -203,8 +217,9 @@ bool nrf24l01::init ()
 {
    for(uint8_t i = 0;i<100;++i) 
    {
-    w_reg(CONFIG, (1 << EN_CRC) | (1 << CRCO) | (1 << PRIM_RX)); // Выключение питания
-    if (r_reg(CONFIG) == ((1 << EN_CRC) | (1 << CRCO) | (1 << PRIM_RX))) 
+    w_reg(CONFIG, (/*1 << EN_CRC) | (1 << CRCO) |*/ (1 << PRIM_RX))); // Выключение питания
+    if (r_reg(CONFIG) == ((/*1 << EN_CRC) | (1 << CRCO) |*/ (1 << PRIM_RX))) )
+                           
     {
       count = i;
       return true;
@@ -231,13 +246,13 @@ uint8_t nrf24l01::receive_byte ()
 
 uint8_t nrf24l01::check_radio ()
 {
-  if (!irq.check_int(irq_)) return 0;
+ /* if (!irq.check_int(irq_)) return 0;
   uint8_t status = get_status ();
   w_reg (STATUS, status);
   // Завершена передача успехом, или нет,
   if (status & (1 << TX_DS)) return 1;
   if (status & (1 << RX_DR)) return receive_byte ();
-  else return 2;
+  else return 2;*/
 }
 
 

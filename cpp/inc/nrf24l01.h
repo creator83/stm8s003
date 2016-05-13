@@ -87,7 +87,7 @@ const uint8_t REGISTER_MASK = 0x1F;
 
 
 //Значения пинов
-const uint8_t irq_ = 2;
+const uint8_t irq_ = 3;
 const uint8_t ce_ = 3;
 
 
@@ -123,7 +123,7 @@ public:
   uint8_t r_reg_buf (uint8_t reg , uint8_t * buf, uint8_t count_);
   uint8_t r_reg (uint8_t reg); 
   bool send_data (uint8_t * buf, uint8_t size);
-  bool send_byte (uint8_t data_);
+  void send_byte (uint8_t data_);
   uint8_t receive_byte ();
   uint8_t get_status ();
   void change_bit (uint8_t reg, uint8_t bit, bool state_);

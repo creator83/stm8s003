@@ -12,11 +12,11 @@ extern "C" {
 }
 */
 tact frq;
-const uint8_t led = 4;
-const uint8_t button = 3;
+const uint8_t led = 3;
+const uint8_t button = 1;
 Gpio D (Gpio::D);
 
-INTERRUPT_HANDLER(inerrupt, EXTI0_vector)
+INTERRUPT_HANDLER(EXTA_i, EXTI0_vector)
 {
   D.setPin (led);
   delay_ms (1500);
