@@ -2,14 +2,14 @@
 
 
 spi::spi(Division div, Cpol cpl , Cpha cph , Role r )
-:pin(Gpio::C)
+:pin(Gpio::C), cs (Gpio::A)
 {
   CLK->PCKENR1 |= CLK_PCKENR1_SPI;
-  pin.setOutPin (CS , Gpio::Low);
+  cs.setOutPin (CS , Gpio::Low);
   pin.setOutPin (SCK , Gpio::High);
   pin.setOutPin (MOSI , Gpio::High);
   pin.setInPin (MISO,Gpio::Pullup);
-  pin.setPin (CS);
+  cs.setPin (CS);
   
   //настройка SPI
   SPI->CR1 |= div << 3;
@@ -27,11 +27,11 @@ void spi::transmit (uint8_t data)
 
 void spi::Set_CS ()
 {
-  pin.setPin (CS);
+  cs.setPin (CS);
 }
 void spi::Clear_CS ()
 {
-  pin.clearPin (CS);
+  cs.clearPin (CS);
 }
 
 uint8_t spi::receive ()

@@ -15,8 +15,9 @@ public:
   enum Role {slave , master};
   enum Cpol {neg, pos};
   enum Cpha {falling, rising};
-  enum pin_def {CS = 4 , SCK, MOSI , MISO };
+  enum pin_def {CS = 3 , SCK=5, MOSI , MISO };
 private:
+  Gpio cs;
   Gpio pin;
   
 //function
