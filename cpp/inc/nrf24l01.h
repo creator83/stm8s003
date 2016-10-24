@@ -109,22 +109,19 @@ private:
 public:
 
   nrf24l01 ();
-  void transmit (uint8_t data);
   uint8_t read_data ();
   void mode (state st);
   uint8_t w_reg (uint8_t reg , uint8_t val);
   uint8_t r_reg (uint8_t reg); 
-  uint8_t get_status (); 
+  uint8_t get_status ();
   void change_bit (uint8_t reg, uint8_t bit, bool state);
-  void init ();
 private:
 
  
   uint8_t command (uint8_t mask);
   void set_bit (uint8_t reg_ister, uint8_t register_bit, uint8_t W);
-  void mode (uint8_t st);
   void write_data (uint8_t data);
-  
+  void init ();
 };
 
 

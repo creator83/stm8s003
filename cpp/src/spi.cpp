@@ -8,7 +8,7 @@ spi::spi(Division div, Cpol cpl , Cpha cph , Role r )
   pin.setOutPin (CS , Gpio::Low);
   pin.setOutPin (SCK , Gpio::High);
   pin.setOutPin (MOSI , Gpio::High);
-  pin.setInPin (MISO);
+  pin.setInPin (MISO,Gpio::Pullup);
   pin.setPin (CS);
   
   //настройка SPI
@@ -21,7 +21,7 @@ spi::spi(Division div, Cpol cpl , Cpha cph , Role r )
 
 void spi::transmit (uint8_t data)
 {
-  while (SPI->SR&SPI_SR_BSY);
+  while (!(SPI->SR&SPI_SR_TXE));
   SPI->DR = data;
 }
 
@@ -36,7 +36,7 @@ void spi::Clear_CS ()
 
 uint8_t spi::receive ()
 {
-  while (SPI->SR&SPI_SR_BSY);
+  while (!(SPI->SR&SPI_SR_TXE));
   SPI->DR = 0;
   while (!(SPI->SR&SPI_SR_RXNE));
   return SPI->DR;
@@ -44,7 +44,7 @@ uint8_t spi::receive ()
 
 uint8_t spi::exchange (uint8_t data)
 {
-  while (SPI->SR&SPI_SR_BSY);
+  while (!(SPI->SR&SPI_SR_TXE));
   SPI->DR = data;
   while (!(SPI->SR&SPI_SR_RXNE));
   return SPI->DR;
