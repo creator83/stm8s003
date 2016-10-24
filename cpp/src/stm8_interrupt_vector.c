@@ -1,109 +1,56 @@
-/* BASIC INTERRUPT VECTORS TABLE FOR STM8 devices
- * Copyright (c) 2008 STMicroelectronics
+/*	BASIC INTERRUPT VECTOR TABLE FOR STM8 devices
+ *	Copyright (c) 2007 STMicroelectronics
  */
 
-#include "stm8s_it.h"
 
-extern void @near _stext(); /* startup routine */
+typedef void @far (*interrupt_handler_t)(void);
 
-void @near (* const _vectab[])() =
-  {
+struct interrupt_vector {
+	unsigned char interrupt_instruction;
+	interrupt_handler_t interrupt_handler;
+};
 
-    (void @near (*)())0x8200,
-    _stext,                  /* RESET */
+@far @interrupt void NonHandledInterrupt (void)
+{
+	/* in order to detect unexpected events during development, 
+	   it is recommended to set a breakpoint on the following instruction
+	*/
+	return;
+}
 
-    (void @near (*)())0x8200,
-    NonHandledInterrupt,   /* TRAP - Software interrupt */
+extern void _stext();     /* startup routine */
 
-    (void @near (*)())0x8200,
-    NonHandledInterrupt,   /* irq0 - External Top Level interrupt (TLI) */
-
-    (void @near (*)())0x8200,
-    NonHandledInterrupt,   /* irq1 - Auto Wake Up from Halt interrupt */
-
-    (void @near (*)())0x8200,
-    NonHandledInterrupt,   /* irq2 - Clock Controller interrupt */
-
-    (void @near (*)())0x8200,
-    NonHandledInterrupt,   /* irq3 - External interrupt 0 (GPIOA) */
-
-    (void @near (*)())0x8200,
-    NonHandledInterrupt,   /* irq4 - External interrupt 1 (GPIOB) */
-
-    (void @near (*)())0x8200,
-    EXTI_PORTC_IRQHandler, /* irq5 - External interrupt 2 (GPIOC) */
-
-    (void @near (*)())0x8200,
-    NonHandledInterrupt,   /* irq6 - External interrupt 3 (GPIOD) */
-
-    (void @near (*)())0x8200,
-    NonHandledInterrupt,   /* irq7 - External interrupt 4 (GPIOE) */
-
-    (void @near (*)())0x8200,
-    NonHandledInterrupt,   /* irq8 - CAN Rx interrupt */
-
-    (void @near (*)())0x8200,
-    NonHandledInterrupt,   /* irq9 - CAN Tx/ER/SC interrupt */
-
-    (void @near (*)())0x8200,
-    NonHandledInterrupt,   /* irq10 - SPI End of transfer interrupt */
-
-    (void @near (*)())0x8200,
-    NonHandledInterrupt,   /* irq11 - TIM1 Update/Overflow/Trigger/Break interrupt */
-
-    (void @near (*)())0x8200,
-    NonHandledInterrupt,   /* irq12 - TIM1 Capture/Compare interrupt */
-
-    (void @near (*)())0x8200,
-    NonHandledInterrupt,   /* irq13 - TIM2 Update/Overflow/Break interrupt  */
-
-    (void @near (*)())0x8200,
-    NonHandledInterrupt,   /* irq14 - TIM2 Capture/Compare interrupt */
-
-    (void @near (*)())0x8200,
-    NonHandledInterrupt,   /* irq15 - TIM3 Update/Overflow/Break interrupt */
-
-    (void @near (*)())0x8200,
-    NonHandledInterrupt,   /* irq16 - TIM3 Capture/Compare interrupt */
-
-    (void @near (*)())0x8200,
-    NonHandledInterrupt,   /* irq17 - UART1 Tx complete interrupt */
-
-    (void @near (*)())0x8200,
-    NonHandledInterrupt,   /* irq18 - UART1 Rx interrupt */
-
-    (void @near (*)())0x8200,
-    NonHandledInterrupt,   /* irq19 - I2C interrupt */
-
-    (void @near (*)())0x8200,
-    NonHandledInterrupt,   /* irq20 - UART2/UART3 Tx interrupt */
-
-    (void @near (*)())0x8200,
-    NonHandledInterrupt,   /* irq21 - UART2/UART3 Rx interrupt */
-
-    (void @near (*)())0x8200,
-    NonHandledInterrupt,   /* irq22 - ADC1/ADC2 end of conversion interrupt */
-
-    (void @near (*)())0x8200,
-    NonHandledInterrupt,   /* irq23 - TIM4 Update/Overflow interrupt */
-
-    (void @near (*)())0x8200,
-    NonHandledInterrupt,   /* irq24 - FLASH interrupt */
-
-    (void @near (*)())0x8200,
-    NonHandledInterrupt,   /* irq25 - Reserved */
-
-    (void @near (*)())0x8200,
-    NonHandledInterrupt,   /* irq26 - Reserved */
-
-    (void @near (*)())0x8200,
-    NonHandledInterrupt,   /* irq27 - Reserved */
-
-    (void @near (*)())0x8200,
-    NonHandledInterrupt,   /* irq28 - Reserved */
-
-    (void @near (*)())0x8200,
-    NonHandledInterrupt,   /* irq29 - Reserved */
-
-  };
-
+struct interrupt_vector const _vectab[] = {
+	{0x82, (interrupt_handler_t)_stext}, /* reset */
+	{0x82, NonHandledInterrupt}, /* trap  */
+	{0x82, NonHandledInterrupt}, /* irq0  */
+	{0x82, NonHandledInterrupt}, /* irq1  */
+	{0x82, NonHandledInterrupt}, /* irq2  */
+	{0x82, NonHandledInterrupt}, /* irq3  */
+	{0x82, NonHandledInterrupt}, /* irq4  */
+	{0x82, NonHandledInterrupt}, /* irq5  */
+	{0x82, NonHandledInterrupt}, /* irq6  */
+	{0x82, NonHandledInterrupt}, /* irq7  */
+	{0x82, NonHandledInterrupt}, /* irq8  */
+	{0x82, NonHandledInterrupt}, /* irq9  */
+	{0x82, NonHandledInterrupt}, /* irq10 */
+	{0x82, NonHandledInterrupt}, /* irq11 */
+	{0x82, NonHandledInterrupt}, /* irq12 */
+	{0x82, NonHandledInterrupt}, /* irq13 */
+	{0x82, NonHandledInterrupt}, /* irq14 */
+	{0x82, NonHandledInterrupt}, /* irq15 */
+	{0x82, NonHandledInterrupt}, /* irq16 */
+	{0x82, NonHandledInterrupt}, /* irq17 */
+	{0x82, NonHandledInterrupt}, /* irq18 */
+	{0x82, I2CInterruptHandle}, /* irq19 */
+	{0x82, NonHandledInterrupt}, /* irq20 */
+	{0x82, NonHandledInterrupt}, /* irq21 */
+	{0x82, NonHandledInterrupt}, /* irq22 */
+	{0x82, TIM4InterruptHandle}, /* irq23 */
+	{0x82, NonHandledInterrupt}, /* irq24 */
+	{0x82, NonHandledInterrupt}, /* irq25 */
+	{0x82, NonHandledInterrupt}, /* irq26 */
+	{0x82, NonHandledInterrupt}, /* irq27 */
+	{0x82, NonHandledInterrupt}, /* irq28 */
+	{0x82, NonHandledInterrupt}, /* irq29 */
+};

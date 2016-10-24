@@ -86,8 +86,8 @@ const uint8_t NOP          = 0xFF;
 const uint8_t REGISTER_MASK = 0x1F;
 
 
-//Значения ножек
-const uint8_t irq_ = 2;
+//Значения пинов
+const uint8_t irq_ = 3;
 const uint8_t ce_ = 3;
 
 
@@ -96,33 +96,49 @@ class nrf24l01
 {
 //variables
 public:
-
-  enum state {transmitter , receiver};  
+  uint8_t count;
+  enum mode {TXmode , RXmode, PWR_DOWN, STANDBY_1, STANDBY_2};  
 private:
   
   Gpio pin;
   spi spi1;
-  //intrpt irq;
-
-  
+  intrpt irq;
+  static uint8_t self_addr[5] ;
+  static uint8_t remote_addr[5];
+  uint8_t chan;
   //functions
 public:
 
   nrf24l01 ();
+  bool startup;
   uint8_t read_data ();
-  void mode (state st);
+  void set_state (mode st);
+  void rx_state ();
+  void tx_state ();
+  void stanby1_state();
+  uint8_t command (uint8_t cmd_);
+  uint8_t w_data (uint8_t data_);
   uint8_t w_reg (uint8_t reg , uint8_t val);
+  uint8_t w_reg_buf (uint8_t reg , uint8_t * buf, uint8_t count_);
+  uint8_t r_reg_buf (uint8_t reg , uint8_t * buf, uint8_t count_);
   uint8_t r_reg (uint8_t reg); 
+  bool send_data (uint8_t * buf, uint8_t size);
+  void send_byte (uint8_t data_);
+  uint8_t receive_byte ();
   uint8_t get_status ();
-  void change_bit (uint8_t reg, uint8_t bit, bool state);
+  void change_bit (uint8_t reg, uint8_t bit, bool state_);
+  bool init ();
+  uint8_t check_radio ();
+  //uint8_t state;
+
 private:
 
- 
-  uint8_t command (uint8_t mask);
   void set_bit (uint8_t reg_ister, uint8_t register_bit, uint8_t W);
   void write_data (uint8_t data);
-  void init ();
+  
 };
+
+inline void nrf24l01::stanby1_state(){pin.clearPin (ce_);}
 
 
 #endif
