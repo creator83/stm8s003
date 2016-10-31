@@ -27,7 +27,8 @@ private:
   //functions
 public:
   Gpio(Port p );
-  Gpio(uint8_t p );
+  Gpio();
+  void setPort (Port);
   void setOutPin (unsigned char pin , speed s = Low , out o = PushPull);	
   void setInPin (unsigned char pin,  PP p=Floating, Interrupt i=Off);
   void setPin (unsigned int pin );
@@ -36,7 +37,7 @@ public:
   void setOutPort (unsigned int value, speed s = Low );		
   void ChangePinState (unsigned char pin);
   void SetPinState (unsigned char pin , unsigned char state);
-  bool pin_state (uint8_t);
+  bool pinState (uint8_t);
 };
 
 

@@ -7,10 +7,15 @@ Gpio::Gpio(Port p )
   prt = p;
 }
 
-Gpio::Gpio(uint8_t p )
+Gpio::Gpio()
+{
+}
+
+void Gpio::setPort (Port p)
 {
   prt = p;
 }
+
 void Gpio::setOutPin (unsigned char pin , speed s  , out o )
 {
   //настройка выход
@@ -69,7 +74,7 @@ void Gpio::SetPinState (unsigned char pin , unsigned char state)
   
 }
 
-bool  Gpio::pin_state (uint8_t pin)
+bool  Gpio::pinState(uint8_t pin)
 {
   return (*(reg)(portAdr[prt]+IDR)& (1 << pin));
 }
