@@ -6,7 +6,7 @@
 #include "button.h"
 #include "qenc.h"
 
-Buffer value (3);
+Buffer value ;
 Button button1 (Gpio::A, 1);
 Button buttonEncoder (Gpio::B, 1);
 Qenc encoder (999);
