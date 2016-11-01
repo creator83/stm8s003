@@ -14,7 +14,7 @@ int main()
   
   while (1)
   {
-    if (!B.pin_state(b))
+    if (!B.pinState(b))
     {
       delay_ms (200);
       B.ChangePinState (l);
