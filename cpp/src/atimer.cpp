@@ -75,7 +75,8 @@ void Atimer::setMode (mode m)
 void Atimer::pwmMode (nChannel ch)
 {
   ch_ = ch;
-  *(uint8_t *)(TIM1_BaseAddress + ccmrShift [ch]) = 0x06 << 4;
-  TIM1->CCER1 = 1 << (4*ch_)| TIM1_CCMR_OCxPE;
+  *(uint8_t *)(TIM1_BaseAddress + ccmrShift [ch]) = ((0x06 << 4)|TIM1_CCMR_OCxPE);
+  TIM1->CCER1 = 1 << (4*ch_) ;
+  TIM1->BKR |= TIM1_BKR_MOE;
   start();
 }

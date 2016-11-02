@@ -9,41 +9,41 @@
 namespace segledDef
 {
   //segment A
-  const Gpio::Port segAport = Gpio::A;
-  const uint8_t segApin = 1;
+  const Gpio::Port segAport = Gpio::D;
+  const uint8_t segApin = 2;
   //segment B
-  const Gpio::Port segBport = Gpio::A;
-  const uint8_t segBpin = 1;
+  const Gpio::Port segBport = Gpio::D;
+  const uint8_t segBpin = 3;
   //segment C
-  const Gpio::Port segCport = Gpio::A;
-  const uint8_t segCpin = 1;
+  const Gpio::Port segCport = Gpio::D;
+  const uint8_t segCpin = 4;
   //segment D
-  const Gpio::Port segDport = Gpio::A;
-  const uint8_t segDpin = 1;
+  const Gpio::Port segDport = Gpio::D;
+  const uint8_t segDpin = 5;
   //segment E
-  const Gpio::Port segEport = Gpio::A;
-  const uint8_t segEpin = 1;
+  const Gpio::Port segEport = Gpio::D;
+  const uint8_t segEpin = 6;
   //segment F
   const Gpio::Port segFport = Gpio::A;
   const uint8_t segFpin = 1;
   //segment G
   const Gpio::Port segGport = Gpio::A;
-  const uint8_t segGpin = 1;
+  const uint8_t segGpin = 2;
   //segment Dp
   const Gpio::Port segDpport = Gpio::A;
-  const uint8_t segDppin = 1;
+  const uint8_t segDppin = 3;
   //digit 1
-  const Gpio::Port digit1port = Gpio::A;
-  const uint8_t digit1pin = 1;
+  const Gpio::Port digit1port = Gpio::C;
+  const uint8_t digit1pin = 5;
   //digit 2
-  const Gpio::Port digit2port = Gpio::A;
-  const uint8_t digit2pin = 1;
+  const Gpio::Port digit2port = Gpio::C;
+  const uint8_t digit2pin = 4;
   //digit 3
-  const Gpio::Port digit3port = Gpio::A;
-  const uint8_t digit3pin = 1;
+  const Gpio::Port digit3port = Gpio::C;
+  const uint8_t digit3pin = 3;
   //digit 4
-  const Gpio::Port digit4port = Gpio::A;
-  const uint8_t digit4pin = 1;
+  const Gpio::Port digit4port = Gpio::C;
+  const uint8_t digit4pin = 3;
     
 }
 

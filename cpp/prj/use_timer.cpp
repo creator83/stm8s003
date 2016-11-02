@@ -1,60 +1,40 @@
 #include "stm8s.h"
 #include "gpio.h"
 #include "delay.h"
+#include "segled.h"
+#include "buffer.h"
+#include "button.h"
+#include "qenc.h"
+#include "atimer.h"
+#include "btimer.h"
+#include "gtimer.h"
 
-const char led = 3;
-void init_timer ();
+Atimer timer1;
 
-Gpio D (Gpio::D);
-/*
-extern "C"
-{
-#pragma vector=TIM4_OVR_UIF_vector
-  __interrupt void TIM4_Handler();
-}
-#pragma vector=TIM4_OVR_UIF_vector
-__interrupt void TIM4_Handler()
-{
-  static uint16_t i = 0;
-  TIM4->SR1 &=  ~ TIM4_SR1_UIF;
-  ++i;
-  if (i>499)
-  {
-    D.ChangePinState (led);
-    i=0;
-  }
-}*/
-/**/
-INTERRUPT_HANDLER(TIM4_OVR_UIF, TIM4_OVR_UIF_vector)
-{
-  static uint16_t i = 0;
-  TIM4->SR1 &=  ~ TIM4_SR1_UIF;
-  ++i;
-  if (i>499)
-  {
-    D.ChangePinState (led);
-    i=0;
-  }
-}
 int main()
-{
-  
+{ 
   CLK->CKDIVR = 0;
-  init_timer ();
-  D.setOutPin(led);
 
-  
+ /* GPIOC->DDR |= 1 << 6;
+  GPIOC->CR1 |= 1 << 6;
+  GPIOC->ODR |= 1 << 6;*/
+  timer1.pwmMode (Atimer::channel1);
+  timer1.setPsc (32);
+  timer1.setArr (100);
+  timer1.setChannelValue (90);
+ 
   while (1)
   {
-   
+    for (uint8_t i=100;i>0;--i)
+    {
+      timer1.setChannelValue (i);
+      delay_ms (10);
+    }
+    for (uint8_t i=0;i<100;++i)
+    {
+      timer1.setChannelValue (i);
+      delay_ms (10);
+    }    
+        
   }
-}
-
-void init_timer ()
-{
-  CLK->PCKENR1 |= CLK_PCKENR1_TIM4;
-  TIM4->PSCR = 7;
-  TIM4->IER = TIM4_IER_UIE;
-  TIM4->CR1 = TIM4_CR1_ARPE|TIM4_CR1_CEN;
-  __enable_interrupt();
 }
