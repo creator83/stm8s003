@@ -1,6 +1,7 @@
 #include "stm8s.h"    
 #include "gpio.h"
 
+
 /*
  * TIM3
  * PHA - PTC6 
@@ -26,7 +27,7 @@ const uint8_t PhbPin = 7;
 #define QENC_H
 
 
-class Qenc
+class Qenc 
 {
   //variables
 public:
@@ -40,6 +41,8 @@ public:
 	Qenc (uint16_t range);
 	uint16_t getValue ();
 	void setValue  (uint16_t);
+        void start ();
+        void stop ();
 
 private:
 	void setMode ();

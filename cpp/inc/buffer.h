@@ -4,6 +4,7 @@
 #ifndef BUFFER_H
 #define BUFFER_H
 
+const char size = 6;
 
 class Buffer
 {
@@ -15,7 +16,7 @@ private:
   static const char ArraySegDpChar [11];
   uint8_t n;
   uint8_t count;
-  char arr[6];
+  char arr[size];
   char * real;
 public:
   Buffer();

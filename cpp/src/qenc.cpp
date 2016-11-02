@@ -23,7 +23,7 @@ void Qenc::setMode ()
 	TIM1->CCMR1 |= TIM1_CCMR_CCxS|TIM1_CCMR_ICxF;
 	TIM1->CCER1 &= ~(TIM1_CCER1_CC1P|TIM1_CCER1_CC2P);
 	TIM1->SMCR |= 0x03;
-	TIM1->CR1 |= TIM1_CR1_CEN;
+	//TIM1->CR1 |= TIM1_CR1_CEN;
 }
 
 uint16_t Qenc::getValue ()
@@ -38,5 +38,15 @@ void Qenc::setValue  (uint16_t val)
 	value = val << 2;
 	TIM1->CNTRH = value>>8;
         TIM1->CNTRL = static_cast <uint8_t> (value);
+}
+
+void Qenc::start ()
+{
+  TIM1->CR1 |= TIM1_CR1_CEN;
+}
+
+void Qenc::stop ()
+{
+  TIM1->CR1 &= ~ TIM1_CR1_CEN;
 }
 
