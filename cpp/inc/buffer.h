@@ -26,6 +26,7 @@ public:
   char * getArray ();
   char * getContent ();
   char * getElement (uint8_t n);
+  uint8_t getCount ();
 };
 
 	

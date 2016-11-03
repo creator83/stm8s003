@@ -41,7 +41,7 @@ void Buffer::pars (const uint16_t & val)
         {
           --count;
         }
-        if (!count)count = 1;
+        if (count<2)count = 2;
         for (uint8_t i=count-1;i<5;++i)
         {
           arr [i] = ArraySegChar [arrVal[i]];
@@ -53,12 +53,12 @@ void Buffer::pars (const uint16_t & val)
 
 char * Buffer::getArray ()
 {
-	return arr;
+  return arr;
 }
 
 char * Buffer::getContent ()
 {
-	return real;
+  return real;
 }
 
 char * Buffer::getElement (uint8_t n)
@@ -76,3 +76,9 @@ bool Buffer::setElement (uint8_t el, uint8_t val)
 		return true;
 	}
 }
+
+uint8_t Buffer::getCount ()
+{
+  return count;
+}
+
