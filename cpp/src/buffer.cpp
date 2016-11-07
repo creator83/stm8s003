@@ -46,7 +46,7 @@ void Buffer::pars (const uint16_t & val)
         {
           arr [i] = ArraySegChar [arrVal[i]];
         }
-        arr [2] = ArraySegDpChar [arrVal[2]];
+        arr [3] = ArraySegDpChar [arrVal[3]];
 	real = &arr [(size-1)-count];
 }
 

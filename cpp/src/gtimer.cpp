@@ -62,7 +62,7 @@ void Gtimer::stop ()
 
 void Gtimer::clearFlag()
 {
-	
+  TIM2->SR1 &=  ~ TIM2_SR1_UIF;
 }
 
 void Gtimer::setMode (mode m)
