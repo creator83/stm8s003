@@ -12,7 +12,7 @@ class Atimer
 public:
 		
   enum nChannel {channel1, channel2, channel3, channel4};
-  enum mode {pwm};                  
+  enum mode {pwm, pwmInput};                  
 private:
 		
 protected:
@@ -32,6 +32,7 @@ public:
   void clearFlag();
   void setMode (mode m);
   void pwmMode (nChannel ch);
+  void pwmInputMode ();
 protected:
   uint16_t getCnt ();
   

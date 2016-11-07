@@ -80,3 +80,14 @@ void Atimer::pwmMode (nChannel ch)
   TIM1->BKR |= TIM1_BKR_MOE;
   start();
 }
+
+void Atimer::pwmInputMode ()
+{
+  TIM1->CCMR1 |= 1 << 0;
+  TIM1->CCMR2 |= 1 << 1;
+  TIM1->SMCR |= (1 << 4|1 << 6|1 << 2);
+  TIM1->CCER1 |= 1 << 0;
+  TIM1->CCER2 |= (1 << 0|1 << 5);
+  TIM1->IER |= TIM1_IER_CC1IE;
+  start();
+}
