@@ -2,8 +2,10 @@
 
 
 const char Buffer::Array_char [11] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ' '};
+const char Buffer::hexChar [16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
 const char Buffer::ArraySegChar [11] = {0x3F ,0x06 , 0x5B , 0x4F , 0x66 , 0x6D , 0x7D, 0x07 , 0x7F , 0x6F ,  0x00};
 const char Buffer::ArraySegDpChar [11] = {0xBF , 0x86 , 0xDB , 0xCF , 0xE6 , 0xED , 0xFD , 0x87 , 0xFF , 0xEF , 0x00};
+
 
 Buffer::Buffer()
 {	
@@ -48,6 +50,19 @@ void Buffer::pars (const uint16_t & val)
         }
         arr [3] = ArraySegDpChar [arrVal[3]];
 	real = &arr [(size-1)-count];
+}
+
+void Buffer::parsHex32 (uint32_t value)
+{
+  count = 1;
+  arr [0] = hexChar [(value&0xF0000000)>>28];
+  arr [1] = hexChar [(value&0x0F000000)>>24];
+  arr [2] = hexChar [(value&0x00F00000)>>20];
+  arr [3] = hexChar [(value&0x000F0000)>>16];
+  arr [4] = hexChar [(value&0x0000F000)>>12];
+  arr [5] = hexChar [(value&0x00000F00)>>8];
+  arr [6] = hexChar [(value&0x000000F0)>>4];
+  arr [7] = hexChar [value&0x0F];
 }
 
 
