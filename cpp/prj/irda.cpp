@@ -13,8 +13,8 @@ Hd44780 lcd;
 
 uint16_t encTemp;
 
-const uint16_t start1 = 8900;
-const uint16_t start2 = 4400;
+const uint16_t start1 = 9000;
+const uint16_t start2 = 4000;
 
 const uint16_t edge = 500;
 const uint16_t edge1 = 700;
@@ -30,6 +30,7 @@ uint32_t code;
 
 INTERRUPT_HANDLER(irdaChannel, TIM1_CAPCOM_CC1IF_vector)
 {
+  irda.clearFlag();
   uint16_t fallingEdge, risingEdge;
   int8_t count;
   fallingEdge = TIM1->CCR1H << 8;
@@ -69,6 +70,7 @@ INTERRUPT_HANDLER(irdaChannel, TIM1_CAPCOM_CC1IF_vector)
 
 INTERRUPT_HANDLER(mainLoop, TIM4_OVR_UIF_vector)
 {
+  timer4.clearFlag ();
   if (flag.ready)
   {
     val.parsHex32 (code);
@@ -86,6 +88,7 @@ int main()
   CLK->CKDIVR = 0;
   irda.pwmInputMode();
   
+
   lcd.setPosition (0, 0);
   lcd.sendString ("Hello from STM8");
   lcd.setPosition (1, 0);

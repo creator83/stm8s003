@@ -26,7 +26,7 @@ e (hd44780Def::eport), rs (hd44780Def::rsport), rw (hd44780Def::rwport)
 
 void Hd44780::init ()
 {
-  delay_ms (16);
+  delay_ms (15);
   tetra (0x03);
   delay_ms (5);
   tetra (0x03);
@@ -37,12 +37,12 @@ void Hd44780::init ()
   delay_ms (1);
 
   // 2 strings
-  command (0x28);
+  initCommand (0x28);
   delay_ms (1);
   //turn on display
-  command (0x0C);
+  initCommand (0x0C);
   delay_ms (1);
-  command (0x06);
+  initCommand (0x06);
   delay_ms (1);
   clear();
 }
@@ -56,32 +56,35 @@ void Hd44780::tetra (uint8_t t)
   eDisassert ();
 }
 
-void Hd44780::command (uint8_t b)
+void Hd44780::command (uint8_t com)
 {
-  rwAssert();
-  checkBusy();
-  uint8_t hb = 0;
-  hb = b >> 4;
-  rsDisassert ();
-  tetra (hb);
-  delay_us(1);
-  tetra (b);
-  delay_us(1);
+  checkBusy ();
   rwDisassert();
+  rsDisassert();
+  eDisassert();
+  tetra (com>>4);
+  delay_us(50);
+  tetra (com);
+}
+
+void Hd44780::initCommand (uint8_t com)
+{
+  rwDisassert();
+  rsDisassert();
+  eDisassert();
+  tetra (com>>4);
+  delay_us(50);
+  tetra (com);
 }
 
 void Hd44780::data (char b)
-{
-  rwAssert();
+{ 
   checkBusy();
-  uint8_t hb = 0;
-  hb = b >> 4;
   rsAssert ();
-  tetra (hb);
+  tetra (b>>4);
   delay_us(1);
   tetra (b);
   delay_us(1);
-  rwDisassert();
 }
 
 void Hd44780::sendString (const char *str)
@@ -118,7 +121,8 @@ void Hd44780::newChar (const char *ch, uint8_t addr)
 void Hd44780::checkBusy ()
 {
   d7.setInPin(hd44780Def::d7pin, Gpio::Pullup);
-  rwDisassert();
+  rwAssert ();
+  rsDisassert();
   uint8_t state;
   do
   {
@@ -133,6 +137,7 @@ void Hd44780::checkBusy ()
   }
   while (state);
   d7.setOutPin (hd44780Def::d7pin);
+  rwDisassert();
 }
 
 void Hd44780::Shift(Shifter s, Direction d, uint8_t val)

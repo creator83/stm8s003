@@ -71,7 +71,8 @@ void Gpio::ChangePinState (unsigned char pin)
 
 void Gpio::SetPinState (unsigned char pin , unsigned char state)
 {
-  
+  if (state)setPin (pin);
+  else clearPin (pin);
 }
 
 bool  Gpio::pinState(uint8_t pin)

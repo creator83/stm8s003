@@ -10,22 +10,22 @@ namespace hd44780Def
 {
   //D4
   const Gpio::Port d4port = Gpio::D;
-  const uint8_t d4pin = 2;
+  const uint8_t d4pin = 6;
   //D5
   const Gpio::Port d5port = Gpio::D;
-  const uint8_t d5pin = 3;
+  const uint8_t d5pin = 5;
   //D6
   const Gpio::Port d6port = Gpio::D;
   const uint8_t d6pin = 4;
   //D7
   const Gpio::Port d7port = Gpio::D;
-  const uint8_t d7pin = 5;
+  const uint8_t d7pin = 3;
   //E
-  const Gpio::Port eport = Gpio::D;
-  const uint8_t epin = 6;
+  const Gpio::Port eport = Gpio::A;
+  const uint8_t epin = 1;
   //RS
   const Gpio::Port rsport = Gpio::A;
-  const uint8_t rspin = 1;
+  const uint8_t rspin = 3;
   //RW
   const Gpio::Port rwport = Gpio::A;
   const uint8_t rwpin = 2;
