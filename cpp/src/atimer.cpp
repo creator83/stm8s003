@@ -86,7 +86,7 @@ void Atimer::pwmInputMode ()
   TIM1->CCMR1 |= 1 << 0;
   TIM1->CCMR2 |= 1 << 1;
   TIM1->SMCR |= (1 << 4|1 << 6|1 << 2);
-  TIM1->CCER1 |= (1 << 0| 1 << 4|1 << 1);
+  TIM1->CCER1 |= (1 << 0| 1 << 1|1 << 4);
   TIM1->IER |= TIM1_IER_CC1IE;
   start();
 }

@@ -10,13 +10,12 @@ Buffer val;
 Atimer irda (16);
 Btimer timer4;
 Hd44780 lcd;
-/*
 
-const uint16_t start1 = 9000;
-const uint16_t start2 = 4000;
 
-const uint16_t edge = 500;
-const uint16_t edge1 = 700;
+const uint16_t startH = 15000;
+const uint16_t startL = 10000;
+const uint16_t bit1 = 2000;
+
 
 
 struct flags_
@@ -25,63 +24,78 @@ struct flags_
   unsigned ready : 1;
 }flag;
 
-uint32_t code;*/
-uint16_t falling;
-uint16_t rising;
+union c
+{
+  uint32_t full;
+  uint16_t half[2];
+}c_;
+
+
+uint16_t falling [32];
+
+
 
 INTERRUPT_HANDLER(irdaChannel, TIM1_CAPCOM_CC1IF_vector)
 {
-  falling = TIM1->CCR1H << 8;
-  falling |= TIM1->CCR1L;
-  rising = TIM1->CCR2H << 8;
-  rising |= TIM1->CCR2L;
+  static uint8_t i=0;
+  if (flag.start&&flag.ready==0)
+  {
+    falling [i] = TIM1->CCR1H << 8;
+    falling [i]|= TIM1->CCR1L;
+    ++i;
+  }  
+  if (!flag.start)
+  {
+    uint16_t value;
+    value = TIM1->CCR1H << 8;
+    value |= TIM1->CCR1L;
+    if (value>startL&&value<startH) flag.start =1;
+  }
+
+  if (i==33) 
+  {
+    i=0;
+    flag.ready = 1;
+    disableInterrupts() ;
+  }
   irda.clearFlag();
-  val.parsDec16 (falling);
+  if (flag.ready)
+  {
+    c_.full = 0;
+    uint32_t v;
+    
+    for (uint8_t j=0;j<16;++j)
+    {
+      if (falling [31-j]>bit1)
+      {
+        v = 1 << j;
+        c_.half[1] |= v;
+      }
+    }
+    for (uint8_t j=0;j<16;++j)
+    {
+      if (falling [16-j]>bit1)
+      {
+        v = 1 << j;
+        c_.half[0] |= v;
+      }
+    }    
+    /*val.parsHex32 (c_.full);
+    lcd.setPosition (1, 2);
+    lcd.sendString (val.getArray());*/
+    val.parsDec16 (c_.half[1]);
+    lcd.setPosition (1, 2);
+    lcd.sendString (val.getContent ());
+    flag.ready = 0;
+    flag.start = 0;
+    enableInterrupts();
+  }
+  /*val.parsDec16 (falling);
   lcd.setPosition (0, 5);
   lcd.sendString (val.getContent ());
   val.parsDec16 (rising);
   lcd.setPosition (1, 5);
-  lcd.sendString (val.getContent ());
-}
-  /*
-INTERRUPT_HANDLER(irdaChannel, TIM1_CAPCOM_CC1IF_vector)
-{
-  irda.clearFlag();
-  uint16_t fallingEdge, risingEdge;
-  int8_t count;
-  fallingEdge = TIM1->CCR1H << 8;
-  fallingEdge |= TIM1->CCR1L;
-  risingEdge = TIM1->CCR2H << 8;
-  risingEdge |= TIM1->CCR2L;
-  if (fallingEdge>start1&&risingEdge>start2) 
-  {
-    flag.start = 1;
-    flag.ready = 0;
-    count = 31;
-    code = 0;
-  }
-  if (flag.start)
-  {
-    fallingEdge = TIM1->CCR1H << 8;
-    fallingEdge |= TIM1->CCR1L;
-    risingEdge = TIM1->CCR2H << 8;
-    risingEdge |= TIM1->CCR2L;
-    if (fallingEdge>edge&&risingEdge>edge1) 
-    {
-      code |= 1 << count;
-      --count;
-    }
-    else
-    {
-      code |= 0 << count;
-      --count;
-    }
-  }
-  if (count<0)
-  {
-    flag.start = 0;
-    flag.ready = 1;
-  }
+  lcd.sendString (val.getContent ());*/
 }
 
 INTERRUPT_HANDLER(mainLoop, TIM4_OVR_UIF_vector)
@@ -89,12 +103,11 @@ INTERRUPT_HANDLER(mainLoop, TIM4_OVR_UIF_vector)
   timer4.clearFlag ();
   if (flag.ready)
   {
-    val.parsHex32 (code);
     lcd.setPosition (1, 2);
     lcd.sendString (val.getArray());
     flag.ready = 0;
   }
-}*/
+}
 
 void timer4_init ();
 
@@ -103,13 +116,17 @@ int main()
 { 
   CLK->CKDIVR = 0;
   val.setFont (Buffer::Array_char);
-  irda.pwmInputMode();
-  
-
   lcd.setPosition (0, 0);
-  lcd.sendString ("CCR1");
+  lcd.sendString ("CODE");
   lcd.setPosition (1, 0);
-  lcd.sendString ("CCR2");
+  lcd.sendString ("0x");
+  
+  irda.pwmInputMode();
+  lcd.setPosition (0, 8);
+  lcd.sendString ("fuck");
+  enableInterrupts();
+ 
+  
   //timer4_init ();
   
  
@@ -125,6 +142,7 @@ void timer4_init ()
   timer4.setArr (125);
   enableInterrupts();
   timer4.interrupt (true);
+  enableInterrupts();
   timer4.start ();
 }
 

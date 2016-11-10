@@ -54,7 +54,6 @@ void Buffer::parsDec16 (const uint16_t & val)
 
 void Buffer::parsHex32 (uint32_t value)
 {
-  count = 1;
   arr [0] = hexChar [(value&0xF0000000)>>28];
   arr [1] = hexChar [(value&0x0F000000)>>24];
   arr [2] = hexChar [(value&0x00F00000)>>20];

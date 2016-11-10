@@ -59,7 +59,6 @@ void Hd44780::tetra (uint8_t t)
 void Hd44780::command (uint8_t com)
 {
   checkBusy ();
-  rwDisassert();
   rsDisassert();
   eDisassert();
   tetra (com>>4);
@@ -82,9 +81,9 @@ void Hd44780::data (char b)
   checkBusy();
   rsAssert ();
   tetra (b>>4);
-  delay_us(1);
+  delay_us(2);
   tetra (b);
-  delay_us(1);
+  delay_us(2);
 }
 
 void Hd44780::sendString (const char *str)
