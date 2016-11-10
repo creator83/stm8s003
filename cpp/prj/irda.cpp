@@ -10,8 +10,7 @@ Buffer val;
 Atimer irda (16);
 Btimer timer4;
 Hd44780 lcd;
-
-uint16_t encTemp;
+/*
 
 const uint16_t start1 = 9000;
 const uint16_t start2 = 4000;
@@ -26,8 +25,25 @@ struct flags_
   unsigned ready : 1;
 }flag;
 
-uint32_t code;
+uint32_t code;*/
+uint16_t falling;
+uint16_t rising;
 
+INTERRUPT_HANDLER(irdaChannel, TIM1_CAPCOM_CC1IF_vector)
+{
+  falling = TIM1->CCR1H << 8;
+  falling |= TIM1->CCR1L;
+  rising = TIM1->CCR2H << 8;
+  rising |= TIM1->CCR2L;
+  irda.clearFlag();
+  val.parsDec16 (falling);
+  lcd.setPosition (0, 5);
+  lcd.sendString (val.getContent ());
+  val.parsDec16 (rising);
+  lcd.setPosition (1, 5);
+  lcd.sendString (val.getContent ());
+}
+  /*
 INTERRUPT_HANDLER(irdaChannel, TIM1_CAPCOM_CC1IF_vector)
 {
   irda.clearFlag();
@@ -78,7 +94,7 @@ INTERRUPT_HANDLER(mainLoop, TIM4_OVR_UIF_vector)
     lcd.sendString (val.getArray());
     flag.ready = 0;
   }
-}
+}*/
 
 void timer4_init ();
 
@@ -86,14 +102,15 @@ void timer4_init ();
 int main()
 { 
   CLK->CKDIVR = 0;
+  val.setFont (Buffer::Array_char);
   irda.pwmInputMode();
   
 
   lcd.setPosition (0, 0);
-  lcd.sendString ("Hello from STM8");
+  lcd.sendString ("CCR1");
   lcd.setPosition (1, 0);
-  lcd.sendString ("0x");
-  timer4_init ();
+  lcd.sendString ("CCR2");
+  //timer4_init ();
   
  
   while (1)

@@ -9,7 +9,7 @@ const char Buffer::ArraySegDpChar [11] = {0xBF , 0x86 , 0xDB , 0xCF , 0xE6 , 0xE
 
 Buffer::Buffer()
 {	
-  arr[5] = 0;
+  arr[size-1] = 0;
 
 	//uint8_t *ptr = new
 }
@@ -23,7 +23,7 @@ uint8_t Buffer::getArraySize ()
 }
 
 
-void Buffer::pars (const uint16_t & val)
+void Buffer::parsDec16 (const uint16_t & val)
 {
         uint8_t arrVal[5] = {0};
 	uint16_t temp = val;
@@ -43,12 +43,12 @@ void Buffer::pars (const uint16_t & val)
         {
           --count;
         }
-        if (count<2)count = 2;
-        for (uint8_t i=count-1;i<5;++i)
+        if (count<1)count = 1;
+        for (uint8_t i=size-1-count, j=5-count;j<5;++i,++j)
         {
-          arr [i] = ArraySegChar [arrVal[i]];
+          arr [i] = font [arrVal[j]];
         }
-        arr [3] = ArraySegDpChar [arrVal[3]];
+        //arr [3] = ArraySegDpChar [arrVal[3]];
 	real = &arr [(size-1)-count];
 }
 
@@ -95,5 +95,10 @@ bool Buffer::setElement (uint8_t el, uint8_t val)
 uint8_t Buffer::getCount ()
 {
   return count;
+}
+
+void Buffer::setFont (const char *f)
+{
+  font = f;
 }
 
