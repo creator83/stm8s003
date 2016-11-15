@@ -3,13 +3,14 @@
 #include "delay.h"
 #include "buffer.h"
 #include "atimer.h"
-#include "hd44780.h"
 #include "btimer.h"
+#include "uart.h"
 
 Buffer val;
 Atimer irda (16);
 Btimer timer4;
-Hd44780 lcd;
+Uart uart0;
+
 
 
 const uint16_t startH = 15000;
@@ -28,6 +29,7 @@ union c
 {
   uint32_t full;
   uint16_t half[2];
+  uint8_t quater [4];
 }c_;
 
 
@@ -82,13 +84,15 @@ INTERRUPT_HANDLER(irdaChannel, TIM1_CAPCOM_CC1IF_vector)
     }    
     /*val.parsHex32 (c_.full);
     lcd.setPosition (1, 2);
-    lcd.sendString (val.getArray());*/
-    val.parsDec16 (c_.half[1]);
-    lcd.setPosition (1, 2);
-    lcd.sendString (val.getContent ());
+    lcd.sendString (val.getArray());
+    val.parsDec16 (c_.half[1]);*/
+ 
+    for (uint8_t i=0;i<4;++i)
+    {
+      uart0.transmit (c_.quater[i]);
+    }
     flag.ready = 0;
     flag.start = 0;
-    enableInterrupts();
   }
   /*val.parsDec16 (falling);
   lcd.setPosition (0, 5);
@@ -103,8 +107,6 @@ INTERRUPT_HANDLER(mainLoop, TIM4_OVR_UIF_vector)
   timer4.clearFlag ();
   if (flag.ready)
   {
-    lcd.setPosition (1, 2);
-    lcd.sendString (val.getArray());
     flag.ready = 0;
   }
 }
@@ -114,16 +116,14 @@ void timer4_init ();
 
 int main()
 { 
+  
   CLK->CKDIVR = 0;
+  
   val.setFont (Buffer::Array_char);
-  lcd.setPosition (0, 0);
-  lcd.sendString ("CODE");
-  lcd.setPosition (1, 0);
-  lcd.sendString ("0x");
+  
   
   irda.pwmInputMode();
-  lcd.setPosition (0, 8);
-  lcd.sendString ("fuck");
+ 
   enableInterrupts();
  
   
@@ -132,7 +132,7 @@ int main()
  
   while (1)
   {
-    
+
   }
 }
 

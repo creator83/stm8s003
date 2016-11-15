@@ -3,11 +3,12 @@
 #include "delay.h"
 #include "tact.h"
 
-tact frq;
+//tact frq;
 
 int main()
 {  
-  uart uart1 (uart::b9600);
+   CLK->CKDIVR = 0;
+  Uart uart1;
   
   while (1)
   {

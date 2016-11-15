@@ -5,7 +5,7 @@
 #ifndef UART_H
 #define UART_H
 
-class uart
+class Uart
 {
 //variables
 public:
@@ -17,7 +17,8 @@ private:
   uint16_t brr_val;
  //function
 public:
-  uart(baud b);
+  Uart(baud b);
+  Uart ();
   void transmit (uint8_t data);
   void transmit (char * str);
   uint8_t receive ();
