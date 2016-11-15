@@ -6,11 +6,12 @@
 #include "btimer.h"
 #include "uart.h"
 
-Buffer val;
 Atimer irda (16);
 Btimer timer4;
 Uart uart0;
 
+#define ARRAY
+#define CODE
 
 
 const uint16_t startH = 15000;
@@ -82,24 +83,24 @@ INTERRUPT_HANDLER(irdaChannel, TIM1_CAPCOM_CC1IF_vector)
         c_.half[0] |= v;
       }
     }    
-    /*val.parsHex32 (c_.full);
-    lcd.setPosition (1, 2);
-    lcd.sendString (val.getArray());
-    val.parsDec16 (c_.half[1]);*/
- 
+#ifdef CODE
     for (uint8_t i=0;i<4;++i)
     {
       uart0.transmit (c_.quater[i]);
     }
+#endif
+#ifdef ARRAY
+    for (uint8_t i=0;i<32;++i)
+    {
+      
+      uart0.transmit (falling[i]);
+    }    
+    
+#endif
+    
     flag.ready = 0;
     flag.start = 0;
   }
-  /*val.parsDec16 (falling);
-  lcd.setPosition (0, 5);
-  lcd.sendString (val.getContent ());
-  val.parsDec16 (rising);
-  lcd.setPosition (1, 5);
-  lcd.sendString (val.getContent ());*/
 }
 
 INTERRUPT_HANDLER(mainLoop, TIM4_OVR_UIF_vector)
@@ -119,13 +120,9 @@ int main()
   
   CLK->CKDIVR = 0;
   
-  val.setFont (Buffer::Array_char);
-  
-  
   irda.pwmInputMode();
  
   enableInterrupts();
- 
   
   //timer4_init ();
   

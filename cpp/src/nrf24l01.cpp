@@ -1,16 +1,14 @@
 #include "nrf24l01.h"
 
-uint8_t nrf24l01::self_addr[5] = {0xE7, 0xE7, 0xE7, 0xE7, 0xE7};
+uint8_t Nrf24l01::self_addr[5] = {0xE7, 0xE7, 0xE7, 0xE7, 0xE7};
 
-uint8_t nrf24l01::remote_addr[5] = {0xC2, 0xC2, 0xC2, 0xC2, 0xC2};
+uint8_t Nrf24l01::remote_addr[5] = {0xC2, 0xC2, 0xC2, 0xC2, 0xC2};
 
-nrf24l01::nrf24l01 ()
-:spi1 (spi::div64) , pin (Gpio::C) , irq (intrpt::A , irq_ , intrpt::falling)
+Nrf24l01::Nrf24l01 ()
+:spi1 (Spi::div64) , cs (nrf24Def::csPort, nrf24Def::csPin, Gpio::Low) , ce (nrf24Def::cePort, nrf24Def::cePin, Gpio::Low), irq (intrpt::A , nrf24Def::irqPin, intrpt::falling)
 {
   chan = 3;
   delay_ms (15);
-  pin.setOutPin (ce_);
-  pin.setInPin (irq_);
   if (init ())
   {
     delay_ms (15);
@@ -21,130 +19,130 @@ nrf24l01::nrf24l01 ()
   else startup = false;
 }
 
-void nrf24l01::set_state (mode st)
+void Nrf24l01::set_state (mode st)
 {
   
   //переход в режим standby-1
-  pin.clearPin (ce_);
+  ce.clear ();
   
   //переключаемся между режимами меняя PRIM_RX бит
   change_bit (CONFIG, PRIM_RX, st);
   
   //переходим в один из режимов
-  pin.setPin (ce_);
+  ce.set();
   delay_us(15);
   //if(!st) pin.clearPin (ce_);
   delay_us(135);
 }
 
-void nrf24l01::rx_state ()
+void Nrf24l01::rx_state ()
 {
   //переходим в standby-1
-  pin.setPin (ce_);
+  ce.set ();
   //переключение в RX Mode
   change_bit (CONFIG, PRIM_RX, 1);
-  pin.setPin (ce_);
+  ce.set();
   delay_us(140);
 }
 
-void nrf24l01::tx_state ()
+void Nrf24l01::tx_state ()
 {
   //переходим в standby-1
   stanby1_state();
   //переключение в TX Mode
   change_bit (CONFIG, PRIM_RX, 0);
-  pin.setPin (ce_);
+  ce.set ();
   delay_us(15);
-  pin.clearPin (ce_);
+  ce.clear ();
   delay_us(135);
 }
 
-uint8_t nrf24l01::command (uint8_t cmd_)
+uint8_t Nrf24l01::command (uint8_t cmd_)
 {
-  spi1.Clear_CS();
-  spi1.put_data (cmd_);
-  while (!spi1.flag_rxne());
-  uint8_t status = spi1.get_data();
-  spi1.Set_CS ();
+  //spi1.Clear_CS();
+  spi1.putData (cmd_);
+  while (!spi1.flagRxne());
+  uint8_t status = spi1.getData();
+  //spi1.Set_CS ();
   return status;
 }
 
-uint8_t nrf24l01::w_data (uint8_t data_)
+uint8_t Nrf24l01::w_data (uint8_t data_)
 {
-  spi1.Clear_CS();
-  spi1.put_data (W_TX_PAYLOAD);
-  while (!spi1.flag_rxne());
-  uint8_t status = spi1.get_data();
-  spi1.put_data (data_);
-  while (spi1.flag_bsy ());
-  spi1.Set_CS ();
+  //spi1.Clear_CS();
+  spi1.putData (W_TX_PAYLOAD);
+  while (!spi1.flagRxne());
+  uint8_t status = spi1.getData();
+  spi1.putData (data_);
+  while (spi1.flagBsy ());
+  //spi1.Set_CS ();
   return status;
 }
 
-uint8_t nrf24l01::w_reg (uint8_t reg , uint8_t val)
+uint8_t Nrf24l01::w_reg (uint8_t reg , uint8_t val)
 {
-  spi1.Clear_CS();
-  spi1.put_data (W_REGISTER|reg);
-  while (!spi1.flag_rxne());
-  uint8_t status = spi1.get_data();
-  while (!spi1.flag_txe());
-  spi1.put_data (val); 
-  while (!spi1.flag_rxne());
-  uint8_t reg_val = spi1.get_data();
-  spi1.Set_CS ();
+  //spi1.Clear_CS();
+  spi1.putData (W_REGISTER|reg);
+  while (!spi1.flagRxne());
+  uint8_t status = spi1.getData();
+  while (!spi1.flagTxe());
+  spi1.putData (val); 
+  while (!spi1.flagRxne());
+  uint8_t reg_val = spi1.getData();
+  //spi1.Set_CS ();
   return reg_val;     
 }
 
-uint8_t nrf24l01::w_reg_buf (uint8_t reg , uint8_t * buf, uint8_t count_)
+uint8_t Nrf24l01::w_reg_buf (uint8_t reg , uint8_t * buf, uint8_t count_)
 {
-  spi1.Clear_CS();
-  spi1.put_data (W_REGISTER|reg);
-  while (!spi1.flag_rxne());
-  uint8_t status = spi1.get_data();
+  //spi1.Clear_CS();
+  spi1.putData (W_REGISTER|reg);
+  while (!spi1.flagRxne());
+  uint8_t status = spi1.getData();
   while (count_--)
   {
-    while (!spi1.flag_txe());
-    spi1.put_data (*(buf++));
+    while (!spi1.flagTxe());
+    spi1.putData (*(buf++));
   }
-  spi1.Set_CS ();
+  //spi1.Set_CS ();
   return status;
 }
 
-uint8_t nrf24l01::r_reg_buf (uint8_t reg , uint8_t * buf, uint8_t count_)
+uint8_t Nrf24l01::r_reg_buf (uint8_t reg , uint8_t * buf, uint8_t count_)
 {
-  spi1.Clear_CS();
-  spi1.put_data (R_REGISTER|reg);
-  while (!spi1.flag_rxne());
-  uint8_t status = spi1.get_data();
+  ///spi1.Clear_CS();
+  spi1.putData (R_REGISTER|reg);
+  while (!spi1.flagRxne());
+  uint8_t status = spi1.getData();
   while (count_--)
   {
-    while (!spi1.flag_txe());
-    spi1.put_data (NOP);
-    while (!spi1.flag_rxne());
-    *(buf++) = spi1.get_data();
+    while (!spi1.flagTxe());
+    spi1.putData (NOP);
+    while (!spi1.flagRxne());
+    *(buf++) = spi1.getData();
   }
-  spi1.Set_CS ();
+  //spi1.Set_CS ();
   return status;
 }
 
-uint8_t nrf24l01::r_reg (uint8_t reg)
+uint8_t Nrf24l01::r_reg (uint8_t reg)
 {
-  spi1.Clear_CS();
-  spi1.put_data (R_REGISTER|reg);
-  while (!spi1.flag_rxne());
-  uint8_t status = spi1.get_data();
-  while (!spi1.flag_txe());
-  spi1.put_data (NOP); 
-  while (!spi1.flag_rxne());
-  uint8_t reg_val = spi1.get_data();
-  spi1.Set_CS ();
+  //spi1.Clear_CS();
+  spi1.putData(R_REGISTER|reg);
+  while (!spi1.flagRxne());
+  uint8_t status = spi1.getData();
+  while (!spi1.flagTxe());
+  spi1.putData (NOP); 
+  while (!spi1.flagRxne());
+  uint8_t reg_val = spi1.getData();
+  //spi1.Set_CS ();
   return reg_val;   
 }
 
-bool nrf24l01::send_data (uint8_t * buf, uint8_t size)
+bool Nrf24l01::send_data (uint8_t * buf, uint8_t size)
 {
   //переход в режим standby-1
-  pin.clearPin (ce_);
+  ce.clear ();
   uint8_t conf = r_reg (CONFIG);
   
   // Сбрасываем бит PRIM_RX, и включаем питание установкой PWR_UP
@@ -161,16 +159,16 @@ bool nrf24l01::send_data (uint8_t * buf, uint8_t size)
   w_reg_buf (W_TX_PAYLOAD, buf, size);
   
   // Импульс на линии CE приведёт к началу передачи
-  pin.setPin (ce_);
+  ce.set ();
   
   // Нужно минимум 10мкс
   delay_us(15); 
   
-  pin.clearPin (ce_);
+  ce.clear ();
   return true;
 }
 
-void nrf24l01::send_byte (uint8_t data_)
+void Nrf24l01::send_byte (uint8_t data_)
 {
   stanby1_state();
   //uint8_t status = get_status ();
@@ -182,29 +180,29 @@ void nrf24l01::send_byte (uint8_t data_)
   while (pin.pin_state (irq_));
   uint8_t s = get_status ();
   w_reg (STATUS, s);*/
-  spi1.Clear_CS();
-  spi1.put_data (W_TX_PAYLOAD);
-  while (!spi1.flag_rxne());
-  uint8_t status = spi1.get_data();
-  while (!spi1.flag_txe());
-  spi1.put_data (data_);
-  while (!spi1.flag_bsy());
-  spi1.Set_CS ();
+  //spi1.Clear_CS();
+  spi1.putData (W_TX_PAYLOAD);
+  while (!spi1.flagRxne());
+  uint8_t status = spi1.getData();
+  while (!spi1.flagTxe());
+  spi1.putData (data_);
+  while (!spi1.flagBsy());
+  //spi1.Set_CS ();
   tx_state ();
   
 }
 
-uint8_t nrf24l01::get_status ()
+uint8_t Nrf24l01::get_status ()
 {
-  spi1.Clear_CS();
-  spi1.put_data (NOP);
-  while (!spi1.flag_rxne());
-  uint8_t status = spi1.get_data();
-  spi1.Set_CS ();
+  //spi1.Clear_CS();
+  spi1.putData (NOP);
+  while (!spi1.flagRxne());
+  uint8_t status = spi1.getData();
+  //spi1.Set_CS ();
   return status; 
 }
 
-void nrf24l01::change_bit (uint8_t reg, uint8_t bit, bool state)
+void Nrf24l01::change_bit (uint8_t reg, uint8_t bit, bool state)
 {
   uint8_t val = r_reg (reg);
   
@@ -213,7 +211,7 @@ void nrf24l01::change_bit (uint8_t reg, uint8_t bit, bool state)
   w_reg (reg, val);
 }
 
-bool nrf24l01::init ()
+bool Nrf24l01::init ()
 {
    for(uint8_t i = 0;i<100;++i) 
    {
@@ -230,21 +228,21 @@ bool nrf24l01::init ()
   return false;
 }
 
-uint8_t nrf24l01::receive_byte ()
+uint8_t Nrf24l01::receive_byte ()
 {
-  spi1.Clear_CS();
-  spi1.put_data (R_RX_PAYLOAD);
-  while (!spi1.flag_rxne());
-  uint8_t status = spi1.get_data();
-  while (!spi1.flag_txe());
-  spi1.put_data (NOP); 
-  while (!spi1.flag_rxne());
-  uint8_t value = spi1.get_data();
-  spi1.Set_CS ();
+  //spi1.Clear_CS();
+  spi1.putData (R_RX_PAYLOAD);
+  while (!spi1.flagRxne());
+  uint8_t status = spi1.getData();
+  while (!spi1.flagTxe());
+  spi1.putData (NOP); 
+  while (!spi1.flagRxne());
+  uint8_t value = spi1.getData();
+  //spi1.Set_CS ();
   return value;
 }
 
-uint8_t nrf24l01::check_radio ()
+uint8_t Nrf24l01::check_radio ()
 {
  /* if (!irq.check_int(irq_)) return 0;
   uint8_t status = get_status ();

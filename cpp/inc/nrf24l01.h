@@ -1,5 +1,5 @@
 #include "stm8s.h"
-#include "gpio.h"
+#include "pin.h"
 #include "spi.h"
 #include "intrpt.h"
 #include "delay.h"
@@ -7,6 +7,19 @@
 #ifndef NRF24L01_H
 #define NRF24L01_H
 
+
+namespace nrf24Def
+{
+  //CE
+  const Gpio::Port cePort = Gpio::A;
+  const uint8_t cePin = 1;
+  //CS
+  const Gpio::Port csPort = Gpio::A;
+  const uint8_t csPin = 2;
+  //IRQ
+  const Gpio::Port irqPort = Gpio::A;
+  const uint8_t irqPin = 3;
+}
 
 /* Register Map (регистры) стр 53-58 */
 const uint8_t CONFIG     = 0x00;
@@ -86,13 +99,9 @@ const uint8_t NOP          = 0xFF;
 const uint8_t REGISTER_MASK = 0x1F;
 
 
-//Значения пинов
-const uint8_t irq_ = 3;
-const uint8_t ce_ = 3;
 
 
-
-class nrf24l01
+class Nrf24l01
 {
 //variables
 public:
@@ -100,8 +109,8 @@ public:
   enum mode {TXmode , RXmode, PWR_DOWN, STANDBY_1, STANDBY_2};  
 private:
   
-  Gpio pin;
-  spi spi1;
+  Pin cs, ce;
+  Spi spi1;
   intrpt irq;
   static uint8_t self_addr[5] ;
   static uint8_t remote_addr[5];
@@ -109,7 +118,7 @@ private:
   //functions
 public:
 
-  nrf24l01 ();
+  Nrf24l01 ();
   bool startup;
   uint8_t read_data ();
   void set_state (mode st);
@@ -138,7 +147,7 @@ private:
   
 };
 
-inline void nrf24l01::stanby1_state(){pin.clearPin (ce_);}
+inline void Nrf24l01::stanby1_state(){ce.clear ();}
 
 
 #endif

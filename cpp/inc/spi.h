@@ -4,10 +4,8 @@
 #ifndef SPI_H
 #define SPI_H
 
-typedef uint8_t* reg;
 
-
-class spi
+class Spi
 {
 //variables
 public:
@@ -15,31 +13,25 @@ public:
   enum Role {slave , master};
   enum Cpol {neg, pos};
   enum Cpha {falling, rising};
-  enum pin_def {CS = 3 , SCK=5, MOSI , MISO };
+  enum pinDef {SCK=5, MOSI , MISO };
 private:
-  Gpio cs;
   Gpio pin;
   
 //function
 public:
-  spi(Division div, Cpol cpl = neg, Cpha cph = falling, Role r = master);
-  void Set_CS ();
-  void Clear_CS ();
-  void put_data (uint8_t data);
-  uint8_t get_data ();
-  bool flag_bsy ();
-  bool flag_txe ();
-  bool flag_rxne ();
-  void transmit (uint8_t data);
-  uint8_t receive ();
-  uint8_t exchange (uint8_t data);
+  Spi(Division div, Cpol cpl = neg, Cpha cph = falling, Role r = master);
+  void putData (uint8_t data);
+  uint8_t getData ();
+  bool flagBsy ();
+  bool flagTxe ();
+  bool flagRxne ();
 private:
 };
 
-inline void spi::put_data (uint8_t data){SPI->DR = data;}
-inline uint8_t spi::get_data () {return SPI->DR;}
-inline bool spi::flag_bsy (){return SPI->SR&SPI_SR_BSY;}
-inline bool spi::flag_txe (){return SPI->SR&SPI_SR_TXE;}
-inline bool spi::flag_rxne (){return SPI->SR&SPI_SR_RXNE;}
+inline void Spi::putData (uint8_t data){SPI->DR = data;}
+inline uint8_t Spi::getData () {return SPI->DR;}
+inline bool Spi::flagBsy (){return SPI->SR&SPI_SR_BSY;}
+inline bool Spi::flagTxe (){return SPI->SR&SPI_SR_TXE;}
+inline bool Spi::flagRxne (){return SPI->SR&SPI_SR_RXNE;}
 
 #endif

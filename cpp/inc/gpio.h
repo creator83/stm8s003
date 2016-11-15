@@ -21,8 +21,10 @@ public:
   CR1 ,
   CR2 };
 private:
-  private:
-  static unsigned int portAdr [4];
+
+
+protected:
+    static unsigned int portAdr [4];
   unsigned char prt;
   //functions
 public:
