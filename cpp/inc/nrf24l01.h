@@ -108,7 +108,7 @@ public:
   uint8_t count;
   enum mode {TXmode , RXmode, PWR_DOWN, STANDBY_1, STANDBY_2};  
 private:
-  
+  mode m;
   Pin cs, ce;
   Spi spi1;
   intrpt irq;
@@ -121,23 +121,16 @@ public:
   Nrf24l01 ();
   bool startup;
   uint8_t read_data ();
-  void set_state (mode st);
-  void rx_state ();
-  void tx_state ();
-  void stanby1_state();
-  uint8_t command (uint8_t cmd_);
-  uint8_t w_data (uint8_t data_);
-  uint8_t w_reg (uint8_t reg , uint8_t val);
-  uint8_t w_reg_buf (uint8_t reg , uint8_t * buf, uint8_t count_);
-  uint8_t r_reg_buf (uint8_t reg , uint8_t * buf, uint8_t count_);
-  uint8_t r_reg (uint8_t reg); 
-  bool send_data (uint8_t * buf, uint8_t size);
-  void send_byte (uint8_t data_);
-  uint8_t receive_byte ();
+  void rxState ();
+  void txState ();
+  void command (uint8_t com);
+  uint8_t readRegister (uint8_t reg);
+  void writeRegister (uint8_t reg , uint8_t val);
+  void changeBit (uint8_t reg, uint8_t bit, bool state_);
+  void sendByte (uint8_t val);
+  uint8_t receiveByte ();
   uint8_t get_status ();
-  void change_bit (uint8_t reg, uint8_t bit, bool state_);
   bool init ();
-  uint8_t check_radio ();
   //uint8_t state;
 
 private:
@@ -146,8 +139,6 @@ private:
   void write_data (uint8_t data);
   
 };
-
-inline void Nrf24l01::stanby1_state(){ce.clear ();}
 
 
 #endif

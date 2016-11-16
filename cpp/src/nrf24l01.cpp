@@ -7,8 +7,16 @@ uint8_t Nrf24l01::remote_addr[5] = {0xC2, 0xC2, 0xC2, 0xC2, 0xC2};
 Nrf24l01::Nrf24l01 ()
 :spi1 (Spi::div64) , cs (nrf24Def::csPort, nrf24Def::csPin, Gpio::Low) , ce (nrf24Def::cePort, nrf24Def::cePin, Gpio::Low), irq (intrpt::A , nrf24Def::irqPin, intrpt::falling)
 {
+  cs.set ();
   chan = 3;
+  
+  //===Standby-1 mode===//
   delay_ms (15);
+  changeBit (CONFIG, PWR_UP, 1);
+  delay_ms (2);
+  writeRegister (RX_PW_P0, 1);
+  rxState ();
+  /*
   if (init ())
   {
     delay_ms (15);
@@ -16,118 +24,38 @@ Nrf24l01::Nrf24l01 ()
     delay_ms (3);
     startup = true;
   }
-  else startup = false;
+  else startup = false;*/
 }
 
-void Nrf24l01::set_state (mode st)
+void Nrf24l01::rxState ()
 {
-  
-  //переход в режим standby-1
-  ce.clear ();
-  
-  //переключаемся между режимами меняя PRIM_RX бит
-  change_bit (CONFIG, PRIM_RX, st);
-  
-  //переходим в один из режимов
-  ce.set();
-  delay_us(15);
-  //if(!st) pin.clearPin (ce_);
-  delay_us(135);
-}
-
-void Nrf24l01::rx_state ()
-{
-  //переходим в standby-1
-  ce.set ();
   //переключение в RX Mode
-  change_bit (CONFIG, PRIM_RX, 1);
+  changeBit (CONFIG, PRIM_RX, 1);
   ce.set();
   delay_us(140);
 }
 
-void Nrf24l01::tx_state ()
+void Nrf24l01::txState ()
 {
-  //переходим в standby-1
-  stanby1_state();
-  //переключение в TX Mode
-  change_bit (CONFIG, PRIM_RX, 0);
+  ce.clear ();
+  changeBit (CONFIG, PRIM_RX, 0);
   ce.set ();
   delay_us(15);
   ce.clear ();
-  delay_us(135);
+  delay_us(140);
 }
 
-uint8_t Nrf24l01::command (uint8_t cmd_)
+void Nrf24l01::command (uint8_t com)
 {
-  //spi1.Clear_CS();
-  spi1.putData (cmd_);
+  cs.clear ();
+  spi1.putData(com);
   while (!spi1.flagRxne());
   uint8_t status = spi1.getData();
-  //spi1.Set_CS ();
-  return status;
 }
 
-uint8_t Nrf24l01::w_data (uint8_t data_)
+uint8_t Nrf24l01::readRegister (uint8_t reg)
 {
-  //spi1.Clear_CS();
-  spi1.putData (W_TX_PAYLOAD);
-  while (!spi1.flagRxne());
-  uint8_t status = spi1.getData();
-  spi1.putData (data_);
-  while (spi1.flagBsy ());
-  //spi1.Set_CS ();
-  return status;
-}
-
-uint8_t Nrf24l01::w_reg (uint8_t reg , uint8_t val)
-{
-  //spi1.Clear_CS();
-  spi1.putData (W_REGISTER|reg);
-  while (!spi1.flagRxne());
-  uint8_t status = spi1.getData();
-  while (!spi1.flagTxe());
-  spi1.putData (val); 
-  while (!spi1.flagRxne());
-  uint8_t reg_val = spi1.getData();
-  //spi1.Set_CS ();
-  return reg_val;     
-}
-
-uint8_t Nrf24l01::w_reg_buf (uint8_t reg , uint8_t * buf, uint8_t count_)
-{
-  //spi1.Clear_CS();
-  spi1.putData (W_REGISTER|reg);
-  while (!spi1.flagRxne());
-  uint8_t status = spi1.getData();
-  while (count_--)
-  {
-    while (!spi1.flagTxe());
-    spi1.putData (*(buf++));
-  }
-  //spi1.Set_CS ();
-  return status;
-}
-
-uint8_t Nrf24l01::r_reg_buf (uint8_t reg , uint8_t * buf, uint8_t count_)
-{
-  ///spi1.Clear_CS();
-  spi1.putData (R_REGISTER|reg);
-  while (!spi1.flagRxne());
-  uint8_t status = spi1.getData();
-  while (count_--)
-  {
-    while (!spi1.flagTxe());
-    spi1.putData (NOP);
-    while (!spi1.flagRxne());
-    *(buf++) = spi1.getData();
-  }
-  //spi1.Set_CS ();
-  return status;
-}
-
-uint8_t Nrf24l01::r_reg (uint8_t reg)
-{
-  //spi1.Clear_CS();
+  cs.clear ();
   spi1.putData(R_REGISTER|reg);
   while (!spi1.flagRxne());
   uint8_t status = spi1.getData();
@@ -135,88 +63,52 @@ uint8_t Nrf24l01::r_reg (uint8_t reg)
   spi1.putData (NOP); 
   while (!spi1.flagRxne());
   uint8_t reg_val = spi1.getData();
-  //spi1.Set_CS ();
+  while (spi1.flagBsy ());
+  cs.set ();
   return reg_val;   
 }
 
-bool Nrf24l01::send_data (uint8_t * buf, uint8_t size)
+void Nrf24l01::writeRegister (uint8_t reg , uint8_t val)
 {
-  //переход в режим standby-1
-  ce.clear ();
-  uint8_t conf = r_reg (CONFIG);
-  
-  // Сбрасываем бит PRIM_RX, и включаем питание установкой PWR_UP
-  w_reg (CONFIG, (conf & ~(1 << PRIM_RX)) | (1 << PWR_UP));
-  uint8_t status = get_status ();
-  
-  // Если очередь передатчика заполнена, возвращаемся с ошибкой
-  if (status & (1 << TX_FULL)) return false;
-  
-  // Если питание не было включено, то ждём, пока запустится осциллятор
-  if (!(conf & (1 << PWR_UP))) delay_ms(2); 
-  
-  // Запись данных на отправку
-  w_reg_buf (W_TX_PAYLOAD, buf, size);
-  
-  // Импульс на линии CE приведёт к началу передачи
-  ce.set ();
-  
-  // Нужно минимум 10мкс
-  delay_us(15); 
-  
-  ce.clear ();
-  return true;
-}
-
-void Nrf24l01::send_byte (uint8_t data_)
-{
-  stanby1_state();
-  //uint8_t status = get_status ();
-  // Если очередь передатчика заполнена, возвращаемся с ошибкой
-  //if (status & (1 << TX_FULL)) return false;
-  //w_data (data_);
-/*  w_reg (W_TX_PAYLOAD, data_);
-  tx_state ();
-  while (pin.pin_state (irq_));
-  uint8_t s = get_status ();
-  w_reg (STATUS, s);*/
-  //spi1.Clear_CS();
-  spi1.putData (W_TX_PAYLOAD);
+  cs.clear();
+  spi1.putData (W_REGISTER|reg);
   while (!spi1.flagRxne());
   uint8_t status = spi1.getData();
   while (!spi1.flagTxe());
-  spi1.putData (data_);
-  while (!spi1.flagBsy());
-  //spi1.Set_CS ();
-  tx_state ();
-  
+  spi1.putData (val); 
+  while (spi1.flagBsy ());
+  cs.set ();
 }
 
-uint8_t Nrf24l01::get_status ()
+void Nrf24l01::changeBit (uint8_t reg, uint8_t bit, bool state)
 {
-  //spi1.Clear_CS();
-  spi1.putData (NOP);
-  while (!spi1.flagRxne());
-  uint8_t status = spi1.getData();
-  //spi1.Set_CS ();
-  return status; 
+  uint8_t val = readRegister (reg);
+  
+  val = val&(~(1 << bit));
+  val = val|(state << bit);
+  writeRegister (reg, val);
 }
 
-void Nrf24l01::change_bit (uint8_t reg, uint8_t bit, bool state)
+void Nrf24l01::sendByte (uint8_t val)
 {
-  uint8_t val = r_reg (reg);
-  
-  if (state) val = val|(1 << bit);
-  else val = val&(~(1 << bit));
-  w_reg (reg, val);
+  command (W_TX_PAYLOAD);
+  //while (!spi1.flagTxe());
+  spi1.putData (val); 
+  while (spi1.flagBsy ());
+  cs.set ();
+  txState ();
+  uint8_t temp = readRegister (STATUS);
+  writeRegister (STATUS, temp);
+  rxState ();
 }
 
 bool Nrf24l01::init ()
 {
    for(uint8_t i = 0;i<100;++i) 
    {
-    w_reg(CONFIG, (/*1 << EN_CRC) | (1 << CRCO) |*/ (1 << PRIM_RX))); // Выключение питания
-    if (r_reg(CONFIG) == ((/*1 << EN_CRC) | (1 << CRCO) |*/ (1 << PRIM_RX))) )
+   //writeRegister(CONFIG, 
+    writeRegister(CONFIG, (/*1 << EN_CRC) | (1 << CRCO) |*/ (1 << PRIM_RX))); // Выключение питания
+    if (readRegister(CONFIG) == ((/*1 << EN_CRC) | (1 << CRCO) |*/ (1 << PRIM_RX))) )
                            
     {
       count = i;
@@ -228,9 +120,9 @@ bool Nrf24l01::init ()
   return false;
 }
 
-uint8_t Nrf24l01::receive_byte ()
+uint8_t Nrf24l01::receiveByte ()
 {
-  //spi1.Clear_CS();
+  cs.clear();
   spi1.putData (R_RX_PAYLOAD);
   while (!spi1.flagRxne());
   uint8_t status = spi1.getData();
@@ -238,19 +130,9 @@ uint8_t Nrf24l01::receive_byte ()
   spi1.putData (NOP); 
   while (!spi1.flagRxne());
   uint8_t value = spi1.getData();
-  //spi1.Set_CS ();
+  cs.set ();
   return value;
 }
 
-uint8_t Nrf24l01::check_radio ()
-{
- /* if (!irq.check_int(irq_)) return 0;
-  uint8_t status = get_status ();
-  w_reg (STATUS, status);
-  // Завершена передача успехом, или нет,
-  if (status & (1 << TX_DS)) return 1;
-  if (status & (1 << RX_DR)) return receive_byte ();
-  else return 2;*/
-}
 
 
