@@ -111,7 +111,7 @@ private:
   mode m;
   Pin cs, ce;
   Spi spi1;
-  intrpt irq;
+  Intrpt irq;
   static uint8_t self_addr[5] ;
   static uint8_t remote_addr[5];
   uint8_t chan;

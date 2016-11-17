@@ -1,29 +1,27 @@
 #include "stm8s.h"
-#include "gpio.h"
+#include "pin.h"
 #include "intrinsics.h"
 
 
 #ifndef INTRPT_H
 #define INTRPT_H
 
-class intrpt
+class Intrpt
 {
 //variables
 public:
 
-  enum Port {A , B , C , D};
   enum sense {fallLow , rising , falling , riseFall};
   
 private:
   
-  Gpio pin;
+  Pin pin_;
     
   //functions
 public:
 
-  intrpt (Port p , uint8_t gp , sense s);
-  intrpt (uint8_t p , uint8_t gp , sense s);
-  bool check_int (uint8_t p);
+  Intrpt (Gpio::Port p , uint8_t gp , sense s);
+  bool check_int ();
 
 private:
   

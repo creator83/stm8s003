@@ -5,7 +5,7 @@ uint8_t Nrf24l01::self_addr[5] = {0xE7, 0xE7, 0xE7, 0xE7, 0xE7};
 uint8_t Nrf24l01::remote_addr[5] = {0xC2, 0xC2, 0xC2, 0xC2, 0xC2};
 
 Nrf24l01::Nrf24l01 ()
-:spi1 (Spi::div64) , cs (nrf24Def::csPort, nrf24Def::csPin, Gpio::Low) , ce (nrf24Def::cePort, nrf24Def::cePin, Gpio::Low), irq (intrpt::A , nrf24Def::irqPin, intrpt::falling)
+:spi1 (Spi::div64) , cs (nrf24Def::csPort, nrf24Def::csPin, Gpio::Low) , ce (nrf24Def::cePort, nrf24Def::cePin, Gpio::Low), irq (nrf24Def::irqPort , nrf24Def::irqPin, Intrpt::falling)
 {
   cs.set ();
   chan = 3;
