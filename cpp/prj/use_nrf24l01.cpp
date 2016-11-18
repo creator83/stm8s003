@@ -6,8 +6,8 @@
 
 
 
-tact frq;
-uart uart1 (uart::b9600);
+Tact frq;
+uart uart1 ;
 /*Gpio D (Gpio::D);
 
   
@@ -29,7 +29,7 @@ void bin (uint8_t data);
 int main()
 {
 
-  nrf24l01 radio;
+  Nrf24l01 radio;
   for (uint8_t i = 0;i<5;++i)
   {
     uart1.transmit (radio.get_status());
