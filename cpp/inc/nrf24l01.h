@@ -11,14 +11,14 @@
 namespace nrf24Def
 {
   //CE
-  const Gpio::Port cePort = Gpio::A;
-  const uint8_t cePin = 1;
+  const Gpio::Port cePort = Gpio::C;
+  const uint8_t cePin = 3;
   //CS
-  const Gpio::Port csPort = Gpio::A;
-  const uint8_t csPin = 2;
+  const Gpio::Port csPort = Gpio::C;
+  const uint8_t csPin = 4;
   //IRQ
-  const Gpio::Port irqPort = Gpio::A;
-  const uint8_t irqPin = 3;
+  const Gpio::Port irqPort = Gpio::B;
+  const uint8_t irqPin = 5;
 }
 
 /* Register Map (регистры) стр 53-58 */

@@ -4,7 +4,7 @@
 #ifndef TACT_H
 #define TACT_H
 
-class tact
+class Tact
 {
 //variables
 public:
@@ -15,9 +15,9 @@ private:
   uint8_t src;
   //functions
 public:
-  tact (uint8_t frq , src_tact s );
-  tact ();
-  tact (src_tact s);
+  Tact (uint8_t frq , src_tact s );
+  Tact ();
+  Tact (src_tact s);
   static uint8_t & get_frq (){return f_cpu;};
   void init_hsi ();    
 private:

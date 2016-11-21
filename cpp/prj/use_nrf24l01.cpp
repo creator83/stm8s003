@@ -5,9 +5,9 @@
 #include "nrf24l01.h"
 
 
+Nrf24l01 radio;
+//
 
-Tact frq;
-uart uart1 ;
 /*Gpio D (Gpio::D);
 
   
@@ -24,40 +24,21 @@ __interrupt void EXTI_PORTB_IRQHandler()
   ++i;
 }
 */
+
 void bin (uint8_t data);
+
+INTERRUPT_HANDLER(irqB, EXTI1_vector)
+{
+  radio.readRegister (STATUS);
+}
 
 int main()
 {
-
-  Nrf24l01 radio;
-  for (uint8_t i = 0;i<5;++i)
-  {
-    uart1.transmit (radio.get_status());
-  }
-  uart1.transmit ("   ");
-  delay_ms (1000);
-  for (uint8_t i = 0;i<10;++i)
-  {
-    uart1.transmit (radio.r_reg (CONFIG));
-  }  
-  /*
-  uart1.transmit ("   ");
-  delay_ms (1000);  
-  radio.change_bit (CONFIG, PWR_UP, 1);
-  delay_ms (1000); 
-  for (uint8_t i = 0;i<5;++i)
-  {
-    uart1.transmit (radio.r_reg (CONFIG));
-  }    
-  uart1.transmit ("   ");
-  delay_ms (1000);
-  for (uint8_t i = 0;i<5;++i)
-  {
-    uart1.transmit (radio.get_status());
-  }  
-  */
+  CLK->CKDIVR = 0;
   
+  radio.readRegister (CONFIG);
 
+  
   while (1)
   {
     

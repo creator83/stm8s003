@@ -10,7 +10,7 @@ Uart::Uart(baud b)
   pin.setInPin (RX);
   
   //===настройка UART===//
-  brr_val = (tact::get_frq()*1000000/speed[b]);
+  brr_val = (Tact::get_frq()*1000000/speed[b]);
   UART1->BRR2 = brr_val & 0x000F;
   UART1->BRR2 |= brr_val >> 12;
   UART1->BRR1 = (brr_val >> 4) & 0x00FF;

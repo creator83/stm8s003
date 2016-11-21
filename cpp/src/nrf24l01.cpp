@@ -12,7 +12,7 @@ Nrf24l01::Nrf24l01 ()
   
   //===Standby-1 mode===//
   delay_ms (15);
-  changeBit (CONFIG, PWR_UP, 1);
+  writeRegister (CONFIG, (1 <<PWR_UP | 1 << EN_CRC));
   delay_ms (2);
   writeRegister (RX_PW_P0, 1);
   rxState ();
@@ -30,7 +30,7 @@ Nrf24l01::Nrf24l01 ()
 void Nrf24l01::rxState ()
 {
   //переключение в RX Mode
-  changeBit (CONFIG, PRIM_RX, 1);
+  writeRegister (CONFIG, (1 <<PWR_UP | 1 << EN_CRC| 1 << PRIM_RX));
   ce.set();
   delay_us(140);
 }
@@ -38,7 +38,7 @@ void Nrf24l01::rxState ()
 void Nrf24l01::txState ()
 {
   ce.clear ();
-  changeBit (CONFIG, PRIM_RX, 0);
+  writeRegister (CONFIG, (1 <<PWR_UP | 1 << EN_CRC));
   ce.set ();
   delay_us(15);
   ce.clear ();
@@ -48,6 +48,9 @@ void Nrf24l01::txState ()
 void Nrf24l01::command (uint8_t com)
 {
   cs.clear ();
+  nop ();
+  nop ();
+  nop ();
   spi1.putData(com);
   while (!spi1.flagRxne());
   uint8_t status = spi1.getData();
@@ -55,10 +58,7 @@ void Nrf24l01::command (uint8_t com)
 
 uint8_t Nrf24l01::readRegister (uint8_t reg)
 {
-  cs.clear ();
-  spi1.putData(R_REGISTER|reg);
-  while (!spi1.flagRxne());
-  uint8_t status = spi1.getData();
+  command (R_REGISTER|reg);
   while (!spi1.flagTxe());
   spi1.putData (NOP); 
   while (!spi1.flagRxne());
@@ -70,10 +70,7 @@ uint8_t Nrf24l01::readRegister (uint8_t reg)
 
 void Nrf24l01::writeRegister (uint8_t reg , uint8_t val)
 {
-  cs.clear();
-  spi1.putData (W_REGISTER|reg);
-  while (!spi1.flagRxne());
-  uint8_t status = spi1.getData();
+  command (W_REGISTER|reg);
   while (!spi1.flagTxe());
   spi1.putData (val); 
   while (spi1.flagBsy ());
