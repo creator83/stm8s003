@@ -6,6 +6,8 @@
 
 
 Nrf24l01 radio;
+
+uint8_t value ;
 //
 
 /*Gpio D (Gpio::D);
@@ -29,7 +31,13 @@ void bin (uint8_t data);
 
 INTERRUPT_HANDLER(irqB, EXTI1_vector)
 {
-  radio.readRegister (STATUS);
+  uint8_t status = radio.readStatus ();
+  if (status>15)
+  {
+    radio.writeRegister (STATUS, status);
+    value = radio.receiveByte ();
+  }
+  
 }
 
 int main()
@@ -37,8 +45,9 @@ int main()
   CLK->CKDIVR = 0;
   
   radio.readRegister (CONFIG);
-
-  
+  uint8_t status = radio.readStatus ();
+  radio.writeRegister (STATUS, status);
+  value = radio.receiveByte ();
   while (1)
   {
     

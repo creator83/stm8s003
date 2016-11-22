@@ -124,7 +124,9 @@ public:
   void rxState ();
   void txState ();
   void command (uint8_t com);
+  void comm (uint8_t com);
   uint8_t readRegister (uint8_t reg);
+  uint8_t readStatus ();
   void writeRegister (uint8_t reg , uint8_t val);
   void changeBit (uint8_t reg, uint8_t bit, bool state_);
   void sendByte (uint8_t val);

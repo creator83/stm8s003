@@ -15,7 +15,12 @@ Nrf24l01::Nrf24l01 ()
   writeRegister (CONFIG, (1 <<PWR_UP | 1 << EN_CRC));
   delay_ms (2);
   writeRegister (RX_PW_P0, 1);
+  uint8_t status = readStatus ();
+  comm (FLUSH_RX);
+  comm (FLUSH_TX);
+  writeRegister (STATUS, status);
   rxState ();
+  __enable_interrupt ();
   /*
   if (init ())
   {
@@ -31,6 +36,7 @@ void Nrf24l01::rxState ()
 {
   //переключение в RX Mode
   writeRegister (CONFIG, (1 <<PWR_UP | 1 << EN_CRC| 1 << PRIM_RX));
+  //changeBit (CONFIG, PRIM_RX, 1);
   ce.set();
   delay_us(140);
 }
@@ -49,11 +55,16 @@ void Nrf24l01::command (uint8_t com)
 {
   cs.clear ();
   nop ();
-  nop ();
+  spi1.putData(com);
+}
+
+void Nrf24l01::comm (uint8_t com)
+{
+  cs.clear ();
   nop ();
   spi1.putData(com);
-  while (!spi1.flagRxne());
-  uint8_t status = spi1.getData();
+  while (spi1.flagBsy ());
+  cs.set ();
 }
 
 uint8_t Nrf24l01::readRegister (uint8_t reg)
@@ -62,10 +73,22 @@ uint8_t Nrf24l01::readRegister (uint8_t reg)
   while (!spi1.flagTxe());
   spi1.putData (NOP); 
   while (!spi1.flagRxne());
+  uint8_t status = spi1.getData();  
+  while (!spi1.flagRxne());
   uint8_t reg_val = spi1.getData();
   while (spi1.flagBsy ());
   cs.set ();
   return reg_val;   
+}
+
+uint8_t Nrf24l01::readStatus ()
+{
+  command (NOP);
+  uint8_t status = spi1.getData();  
+  while (!spi1.flagRxne());
+  while (spi1.flagBsy ());
+  cs.set ();
+  return status;
 }
 
 void Nrf24l01::writeRegister (uint8_t reg , uint8_t val)
@@ -89,13 +112,11 @@ void Nrf24l01::changeBit (uint8_t reg, uint8_t bit, bool state)
 void Nrf24l01::sendByte (uint8_t val)
 {
   command (W_TX_PAYLOAD);
-  //while (!spi1.flagTxe());
+  while (!spi1.flagTxe());
   spi1.putData (val); 
   while (spi1.flagBsy ());
   cs.set ();
   txState ();
-  uint8_t temp = readRegister (STATUS);
-  writeRegister (STATUS, temp);
   rxState ();
 }
 
@@ -119,8 +140,7 @@ bool Nrf24l01::init ()
 
 uint8_t Nrf24l01::receiveByte ()
 {
-  cs.clear();
-  spi1.putData (R_RX_PAYLOAD);
+  command (R_RX_PAYLOAD);
   while (!spi1.flagRxne());
   uint8_t status = spi1.getData();
   while (!spi1.flagTxe());
