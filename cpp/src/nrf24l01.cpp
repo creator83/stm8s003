@@ -147,6 +147,7 @@ uint8_t Nrf24l01::receiveByte ()
   spi1.putData (NOP); 
   while (!spi1.flagRxne());
   uint8_t value = spi1.getData();
+  while (spi1.flagBsy ());
   cs.set ();
   return value;
 }
