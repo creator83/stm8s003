@@ -4,8 +4,8 @@
 Intrpt::Intrpt (Gpio::Port p , uint8_t gp , sense s)
 :pin_ (p, gp, Gpio::Pullup, Gpio::On)
 {
-  EXTI->CR1 &=~ (0x03<<(p<<1));
-  EXTI->CR1 |= 1<<(p<<1); 
+  EXTI->CR1 &=~ (0x03<<(p*2));
+  EXTI->CR1 |= s <<(p*2); 
 }
 
 
