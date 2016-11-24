@@ -45,7 +45,9 @@ const uint8_t RX_PW_P2   = 0x13;
 const uint8_t RX_PW_P3   = 0x14;
 const uint8_t RX_PW_P4   = 0x15;
 const uint8_t RX_PW_P5   = 0x16;
-const uint8_t FIFO_STATUS = 0x17;
+const uint8_t FIFO_STATUS= 0x17;
+const uint8_t DYNPD      = 0x1C;
+const uint8_t FEATURE    = 0x1D;
 
 /* Bit Mnemonics (биты регистров)*/
 const uint8_t MASK_RX_DR  = 6;
@@ -86,6 +88,16 @@ const uint8_t FIFO_FULL   = 5;
 const uint8_t TX_EMPTY    = 4;
 const uint8_t RX_FULL     = 1;
 const uint8_t RX_EMPTY    = 0;
+const uint8_t SETUP_AW_5BYTES_ADDRESS = 3;
+const uint8_t SETUP_RETR_UP_TO_2_RETRANSMIT = 2;
+const uint8_t RF_SETUP_0DBM = 6;
+const uint8_t DPL_P5 = 5; // ¬ключает приЄм пакетов произвольной длины по каналу 5
+const uint8_t DPL_P4 = 4; // ¬ключает приЄм пакетов произвольной длины по каналу 4
+const uint8_t DPL_P3 = 3; // ¬ключает приЄм пакетов произвольной длины по каналу 3
+const uint8_t DPL_P2 = 2; // ¬ключает приЄм пакетов произвольной длины по каналу 2
+const uint8_t DPL_P1 = 1; // ¬ключает приЄм пакетов произвольной длины по каналу 1
+const uint8_t DPL_P0 = 0; //
+
 
 /* Command  оманды (стр 46-47) */
 const uint8_t R_REGISTER   = 0x00;
@@ -108,12 +120,12 @@ public:
   uint8_t count;
   enum mode {TXmode , RXmode, PWR_DOWN, STANDBY_1, STANDBY_2};  
 private:
+  static uint8_t selfAddress [5];
+  static uint8_t remoteAddress [5];
   mode m;
   Pin cs, ce;
   Spi spi1;
   Intrpt irq;
-  static uint8_t self_addr[5] ;
-  static uint8_t remote_addr[5];
   uint8_t chan;
   //functions
 public:
@@ -128,6 +140,7 @@ public:
   uint8_t readRegister (uint8_t reg);
   uint8_t readStatus ();
   void writeRegister (uint8_t reg , uint8_t val);
+  void writeRegister (uint8_t reg , uint8_t * val, uint8_t);
   void changeBit (uint8_t reg, uint8_t bit, bool state_);
   void sendByte (uint8_t val);
   uint8_t receiveByte ();

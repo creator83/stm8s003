@@ -45,10 +45,10 @@ public:
   void start ();
   void stop ();
 private:
-	void setMode ();
-	void setEdgePwm (pulseMode m);
-	void setCenterPwm ();
-	void setCombinePwm ();
+  void setMode ();
+  void setEdgePwm (pulseMode m);
+  void setCenterPwm ();
+  void setCombinePwm ();
 
 };
 
