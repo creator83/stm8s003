@@ -138,9 +138,9 @@ INTERRUPT_HANDLER(TIM4_OVR_UIF, TIM4_OVR_UIF_vector)
   }
   else
   {
-    encoder.setValue (ScreenVal[flag.screens][flag.encShortPress]->data);
+    //encoder.setValue (ScreenVal[flag.screens][flag.encShortPress]->data);
     encoder.scan ();
-    lcd.setPosition (ScreenCursor[flag.screens][]->row, ScreenCursor[flag.screens][flag.encShortPress]->coloumn);
+    lcd.setPosition (ScreenCursor[flag.screens][flag.encShortPress]->row, ScreenCursor[flag.screens][flag.encShortPress]->coloumn);
     //lcd.data (cursor);
   }
   if (i>adcPeriod)
