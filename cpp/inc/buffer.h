@@ -5,7 +5,7 @@
 #define BUFFER_H
 
 
-const char size = 9;
+const char size = 6;
 
 class Buffer
 {
@@ -23,6 +23,7 @@ private:
 public:
   Buffer();
   void parsDec16 (const uint16_t &);
+  void parsFloat (const uint16_t &);
   void parsHex32 (uint32_t value);
   bool setElement (uint8_t el, uint8_t val);
   uint8_t getArraySize ();
