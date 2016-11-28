@@ -33,6 +33,9 @@ public:
   uint16_t & getP (){return p;}
   uint16_t & getI (){return i;}
   uint16_t & getD (){return d;}
+  void setP (uint16_t);
+  void setI (uint16_t);
+  void setD (uint16_t);
   void reset ();
 };
 

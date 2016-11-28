@@ -70,6 +70,19 @@ uint16_t Pid::compute (uint16_t processValue)
   return (uint16_t) ret;
  }
 
+void Pid::setP (uint16_t val)
+{
+  p = val;
+}
+void Pid::setI (uint16_t val)
+{
+  i = val;
+}
+void Pid::setD (uint16_t val)
+{
+  d = val;
+}
+
  void Pid::reset ()
 {
 	sumError = 0;
