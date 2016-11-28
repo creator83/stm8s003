@@ -10,9 +10,15 @@ Button::Button (Gpio::Port p_, uint8_t pi)
 
 void Button::scanButton ()
 {
-  if (!pin_.state()&&!shortPress&&!longPress)
+  currentState = !pin_.state (); 
+  if (counter>shortLimit && counter<longLimit&&!currentState)
   {
-    currentState = !pin_.state ();
+     shortPress = 1;
+     counter = 0;
+  }  
+  
+  if (!shortPress&&!longPress)
+  {
     state = lastState << 1| currentState;
     switch (state)
     {
@@ -27,12 +33,8 @@ void Button::scanButton ()
     break;
     }
     lastState = currentState;
-    }
-    if (counter>shortLimit && counter<longLimit)
-    {
-      shortPress = 1;
-      counter = 0;
-    }
+  }
+
     if (counter>longLimit)
     {
       longPress = 1;
@@ -47,14 +49,12 @@ void Button::scanAction ()
     longFunction();
     do
     longPress = 0;
-    while (pin_.state ());
+    while (!pin_.state ());
   }
   if (shortPress)
   {
     shortFunction ();
-    do
     shortPress = 0;
-    while (!pin_.state ());
   }
 }
 

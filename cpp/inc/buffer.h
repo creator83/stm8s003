@@ -5,7 +5,8 @@
 #define BUFFER_H
 
 
-const char size = 6;
+const uint8_t size = 6;
+const uint8_t sizeDivider = 5;
 
 class Buffer
 {
@@ -20,9 +21,11 @@ private:
   char arr[size];
   char * real;
   const char * font;
+  static const uint16_t divider [sizeDivider];
 public:
   Buffer();
   void parsDec16 (const uint16_t &);
+  void parsDec16 (const uint16_t &, uint8_t n);
   void parsFloat (const uint16_t &);
   void parsHex32 (uint32_t value);
   bool setElement (uint8_t el, uint8_t val);

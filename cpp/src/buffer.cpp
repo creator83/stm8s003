@@ -5,7 +5,7 @@ const char Buffer::Array_char [11] = {'0', '1', '2', '3', '4', '5', '6', '7', '8
 const char Buffer::hexChar [16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
 const char Buffer::ArraySegChar [11] = {0x3F ,0x06 , 0x5B , 0x4F , 0x66 , 0x6D , 0x7D, 0x07 , 0x7F , 0x6F ,  0x00};
 const char Buffer::ArraySegDpChar [11] = {0xBF , 0x86 , 0xDB , 0xCF , 0xE6 , 0xED , 0xFD , 0x87 , 0xFF , 0xEF , 0x00};
-
+const uint16_t Buffer::divider [sizeDivider] = {10000, 1000, 100, 10};
 
 Buffer::Buffer()
 {	
@@ -48,22 +48,41 @@ void Buffer::parsDec16 (const uint16_t & val)
         {
           arr [i] = font [arrVal[j]];
         }
+        if (arrVal [2] ==0) arr [2] = font [10];
+        
         //arr [3] = ArraySegDpChar [arrVal[3]];
 	real = &arr [(size-1)-count];
 }
 
+void Buffer::parsDec16 (const uint16_t & val, uint8_t n)
+{
+  uint8_t arrVal[5] = {0};
+  uint16_t temp = val;
+  uint8_t k = sizeDivider-n;
+  for (uint8_t i=0;i<n-1;++i)
+  {
+    for (arrVal[k+i]=0;temp>=divider[k+i]; ++arrVal[k+i]) temp-= divider[k+i];
+    arr [k+i] = font [arrVal[k+i]];
+  }
+  arrVal [4] = val%10;
+  arr [4] = font [arrVal [4]];
+  if (val < 100) arr [2] = font [10];
+  if (val < 10) 
+  {
+    arr [2] = font [10];
+    arr [3] = font [10];
+  }
+}
+
 void Buffer::parsFloat (const uint16_t & val)
 {
-  uint8_t arrVal[2] = {0};
+ uint8_t arrVal[2] = {0};
   uint16_t temp = val;
-	
-  for (arrVal[0]=0;temp>=10;++arrVal[0])temp -=10;	
-  arrVal[1] = temp%10;
-        
-  arr [2] = font [arrVal[0]];
+  for (arrVal[0]=0;temp>=10;++arrVal[0])temp -=10;
+  arrVal [1] = temp%10;
+  arr [2] = font [arrVal [0]];
   arr [3] = '.';
-  arr [4] =  font [arrVal[1]];
-  real = &arr[2];
+  arr [4] = font [arrVal [1]];
 }
 
 void Buffer::parsHex32 (uint32_t value)

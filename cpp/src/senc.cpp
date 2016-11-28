@@ -11,12 +11,12 @@ Senc::Senc (Gpio::Port pA, uint8_t pinA, Gpio::Port pB, uint8_t pinB,uint16_t ra
 
 uint16_t Senc::getValue ()
 {
-  return value >> 2;
+  return value >> 1;
 }
 
 void Senc::setValue  (uint16_t val)
 {
-  value = val << 2;
+  value = val << 1;
 }
 
 void Senc::scan ()

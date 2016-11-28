@@ -13,9 +13,9 @@
  
  Pid::Pid (double P, double I, double D, uint16_t setPoint_)
  {
-	 p = (uint16_t) (P*100);
-	 i = (uint16_t) (I*100);
-	 d = (uint16_t) (D*100);
+	 p = (uint16_t) (P*10);
+	 i = (uint16_t) (I*10);
+	 d = (uint16_t) (D*10);
 	 sumError = lastProcessValue = 0;
 	 maxError = MAX_INT / (p + 1);
 	 maxSumError = MAX_I_TERM / (i + 1);
@@ -63,7 +63,7 @@ uint16_t Pid::compute (uint16_t processValue)
 
   lastProcessValue = processValue;
 
-  ret = (p_term + i_term + d_term) / 100;
+  ret = (p_term + i_term + d_term) / 10;
   if(ret > MAX_UINT) ret = MAX_UINT;
   else if(ret < 0)ret = 0;
     

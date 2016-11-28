@@ -15,7 +15,7 @@
 
 //pid value
 
-const double p  = 10.0;
+const double p  = 9.0;
 const double i  = 2.0;
 const double d  = 3.0;
 
@@ -24,7 +24,7 @@ const uint8_t tiltPin = 2;
 //const uint8_t heaterPin = 3;
 //const uint8_t fanPin = 3;
 const uint8_t encAPin = 4;
-const uint8_t encBPin = 4;
+const uint8_t encBPin = 5;
 
 const uint16_t TsetVal=250;
 const uint16_t speedVal=60;
@@ -90,6 +90,7 @@ struct flags
   unsigned encShortPress : 2;
   unsigned encReady : 1;
   unsigned screens :1;
+  unsigned shift :1;
 }flag;
 
 struct position
@@ -132,6 +133,7 @@ void initFun ();
 void scan_enc ();
 void initPosition ();
 void initDataPosition ();
+void clearCursors ();
 
 INTERRUPT_HANDLER(TIM4_OVR_UIF, TIM4_OVR_UIF_vector)
 {
@@ -140,28 +142,60 @@ INTERRUPT_HANDLER(TIM4_OVR_UIF, TIM4_OVR_UIF_vector)
     uint8_t lcd;
     uint8_t adc;
     uint8_t pid;
-  }counter = {0,0};
+  }counter = {0,0,0};
   timer4.clearFlag();
   ++counter.lcd;
   ++counter.adc;
   ++counter.pid;
-  buttonEncoder.scanButton ();
+
+
+    buttonEncoder.scanButton ();
+    buttonEncoder.scanAction();
   
   //опрос энкодера при длительном нажатии кнопки
-  if (flag.encLongPress)
-  {
-    encoder.setValue (ScreenVal [flag.screens][flag.encShortPress]->value);
-    encoder.scan ();
-    ScreenVal [flag.screens][flag.encShortPress]->value = encoder.getValue();
-  }
+
+   // encoder.setValue (ScreenVal [flag.screens][flag.encShortPress]->value);
+    
+    clearCursors ();
+    if (flag.encLongPress)
+    {
+      encoder.setValue (ScreenVal [flag.screens][flag.encShortPress]->value);
+      encoder.scan ();
+      ScreenVal [flag.screens][flag.encShortPress]->value = encoder.getValue ();
+      lcd.setPosition (ScreenCursor[flag.screens][flag.encShortPress]->row, ScreenCursor[flag.screens][flag.encShortPress]->coloumn);
+      lcd.data (cursor);
+    }
       
   if (counter.lcd>period.lcd)
   {
-    if (!flag.encLongPress)
-    {
-      screenF [flag.encShortPress]();
-    }
+    screenF [flag.screens]();
+  }
+    //draw value
     data **tempPtr = &ScreenVal[0][0];
+    for (uint8_t i=0;i<3;++i)
+      {
+      lcd.setPosition ((*tempPtr)->pos.row, (*tempPtr)->pos.coloumn);
+      value.parsDec16 ((*tempPtr)->value, 3);
+      lcd.sendString (value.getElement(2));
+      *tempPtr++; 
+      }
+      tempPtr = &ScreenVal[1][0];
+      for (uint8_t i=0;i<3;++i)
+      {
+      lcd.setPosition ((*tempPtr)->pos.row, (*tempPtr)->pos.coloumn);
+      value.parsFloat ((*tempPtr)->value);
+      lcd.sendString (value.getElement(2));
+      *tempPtr++; 
+      }
+
+  
+   /*  lcd.setPosition (1, 17);
+    encoder.setValue (speed.value);
+    encoder.scan ();
+    speed.value = encoder.getValue ();
+    value.parsDec16 (speed.value);
+    lcd.sendString (value.getContent());
+   data **tempPtr = &ScreenVal[0][0];
     for (uint8_t i=0;i<3;++i)
     {
       lcd.setPosition ((*tempPtr)->pos.row, (*tempPtr)->pos.coloumn);
@@ -180,9 +214,10 @@ INTERRUPT_HANDLER(TIM4_OVR_UIF, TIM4_OVR_UIF_vector)
     lcd.setPosition ((*tempPtr)->pos.row, (*tempPtr)->pos.coloumn);
     value.parsDec16 ((*tempPtr)->value);
     lcd.sendString (value.getContent());
-    counter.lcd = 0;
-  }
-  if (counter.adc>period.adc)
+    counter.lcd = 0;*/
+
+ 
+/*  if (counter.adc>period.adc)
   {
     uint16_t tempAdc = 0;
     for (uint8_t i=0;i<8;++i)
@@ -191,7 +226,7 @@ INTERRUPT_HANDLER(TIM4_OVR_UIF, TIM4_OVR_UIF_vector)
     }
     currTemp.value = tempAdc >> 3;
     counter.adc = 0;
-  }
+  } */
   if (counter.pid>period.pid)
   {
     pidVal.value = regulator.compute (currTemp.value);
@@ -217,22 +252,22 @@ int main()
 {
   mainScreen ();
   pidScreen ();
-  buttonEncoder.setLongLimit (1500);
-  buttonEncoder.setShortLimit (10);
+  buttonEncoder.setLongLimit (150);
+  buttonEncoder.setShortLimit (3); 
   
   buttonEncoder.setlongPressAction (changeLpFlag);
+  buttonEncoder.setshortPressAction (changeSpFlag);
+  value.setFont (Buffer::Array_char);
   initHeater ();
   initFun ();
   initPosition ();
   initDataPosition ();
+  encoder.setValue (speed.value);
   timer4_init ();
   
   while (1)
   {
-    /*lcd.Shift (Hd44780::Window, Hd44780::Left, 16);
-    delay_ms (1000);
-    lcd.command (clear_counter);
-    delay_ms (1000);*/
+    
   }
 }
 
@@ -312,18 +347,23 @@ void pidScreen ()
   lcd.data ('.');
   lcd.setPosition (0, 27);
   lcd.sendString ("D");	
-  lcd.setPosition (0, 30);
+  lcd.setPosition (0, 29);
   lcd.data ('.');
 }
 
 void getMainScreen ()
 {
   lcd.command (clear_counter);
+  flag.shift = 0;
 }
 
 void getPidScreen ()
 {
-  lcd.Shift (Hd44780::Window, Hd44780::Left, 16);
+  if (!flag.shift)
+  {
+    lcd.Shift (Hd44780::Window, Hd44780::Left, 16);
+    flag.shift = 1;
+  }
 }
 
 void changeLpFlag ()
@@ -331,10 +371,18 @@ void changeLpFlag ()
   if (flag.encLongPress) 
   {
     flag.encLongPress = 0;
-    lcd.setPosition (ScreenCursor[flag.screens][flag.encShortPress]->row, ScreenCursor[flag.screens][flag.encShortPress]->coloumn);
-    lcd.data (' ');
+    flag.encShortPress = flag.screens;
+    clearCursors ();
+    
   }
-  else flag.encLongPress = 1;
+  else 
+  {
+    flag.encLongPress = 1;
+    flag.encShortPress = 0;
+    lcd.setPosition (ScreenCursor[flag.screens][flag.encShortPress]->row, ScreenCursor[flag.screens][flag.encShortPress]->coloumn);
+    lcd.data (cursor);
+    ScreenVal [flag.screens][flag.encShortPress]->value = encoder.getValue ();
+  }
 }
 
 void changeSpFlag ()
@@ -355,17 +403,17 @@ void changeSpFlag ()
 	
   else if (flag.encLongPress&&flag.screens)//screenPid
   {
-    lcd.setPosition (ScreenCursor[flag.screens][flag.encShortPress]->row, ScreenCursor[flag.screens][flag.encShortPress]->coloumn);
-    lcd.data (' ');
+    ScreenVal [flag.screens][flag.encShortPress]->value = encoder.getValue ();
     flag.encShortPress++;
     if (flag.encShortPress>2) flag.encShortPress = 0;
+    encoder.setValue (ScreenVal [flag.screens][flag.encShortPress]->value);
   }
-  else if (flag.encLongPress&&flag.screens) //mainScreen
+  else if (flag.encLongPress&&!flag.screens) //mainScreen
   {
-    lcd.setPosition (ScreenCursor[flag.screens][flag.encShortPress]->row, ScreenCursor[flag.screens][flag.encShortPress]->coloumn);
-    lcd.data (' ');
+    ScreenVal [flag.screens][flag.encShortPress]->value = encoder.getValue ();
     if (flag.encShortPress) flag.encShortPress = 0;
     else flag.encShortPress = 1;
+    encoder.setValue (ScreenVal [flag.screens][flag.encShortPress]->value);
   }
 }
 	
@@ -387,42 +435,27 @@ void initFun ()
 void timer4_init ()
 {
   timer4.setPsc (Btimer::div128);
-  timer4.setArr (125);
+  timer4.setArr (124);
   enableInterrupts();
   timer4.interrupt (true);
   timer4.start ();
 }
 
-void scan_enc ()
+void clearCursors ()
 {
-  uint8_t new_;
-  new_ = (1 << encA.state())|encB.state();
-  switch (encod.state)
-  {
-    case 2:
-    {
-    if (new_ == 3) encod.count++;
-    if (new_ == 0) encod.count--;
-    break;
-    }
-    case 0:
-    {
-    if (new_ == 2) encod.count++;
-    if (new_ == 1) encod.count--;
-    break;
-    }
-    case 1:
-    {
-    if (new_ == 0) encod.count++;
-    if (new_ == 3) encod.count--;
-    break;
-    }		
-    case 3:
-    {
-    if (new_ == 1) encod.count++;
-    if (new_ == 2) encod.count--;
-    break;
-  }				
-  }
-  encod.state = new_;
+      //clear all cursors
+      position **tPtr = &ScreenCursor[0][0];
+      for (uint8_t i=0;i<2;++i)
+      {
+        lcd.setPosition ((*tPtr)->row, (*tPtr)->coloumn);
+        lcd.data (' ');
+        *tPtr++;
+      }
+      tPtr = &ScreenCursor[1][0];
+       for (uint8_t i=0;i<3;++i)
+      {
+        lcd.setPosition ((*tPtr)->row, (*tPtr)->coloumn);
+        lcd.data (' ');
+        *tPtr++;
+      }  
 }
