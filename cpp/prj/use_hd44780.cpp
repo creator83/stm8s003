@@ -63,8 +63,6 @@ Btimer timer4;
 Button buttonEncoder (Gpio::A, buttEncPin);
 Button tilt (Gpio::A, tiltPin);
 Buffer value;
-Pin encA (Gpio::B, encAPin, Gpio::Floating);
-Pin encB (Gpio::B, encBPin, Gpio::Floating);
 Pid regulator (p, i, d, TsetVal);
 Senc encoder (Gpio::B, encAPin, Gpio::B, encBPin, 100);
 Adc sensor (Adc::channel3);
