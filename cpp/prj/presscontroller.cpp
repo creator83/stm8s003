@@ -9,87 +9,66 @@
 #include "buffer.h"
 #include "button.h"
 #include "pwm.h"
-#include "pid.h"
-#include "senc.h"
 #include "adc.h"
 
 //pid value
 
-const double p  = 9.0;
-const double i  = 2.0;
-const double d  = 3.0;
 
-const uint8_t buttEncPin = 1;
-const uint8_t tiltPin = 2;
-//const uint8_t heaterPin = 3;
-//const uint8_t fanPin = 3;
-const uint8_t encAPin = 4;
-const uint8_t encBPin = 5;
+const uint8_t setPin = 1;
+const uint8_t plusPin = 2;
+const uint8_t minusPin = 2;
 
-const uint16_t TsetVal=250;
-const uint16_t speedVal=60;
+const uint8_t highVal = 28;
+const uint8_t lowVal = 18;
+const uint8_t dryVal = 4;
+const uint8_t periodVal = 4;
+
 
 uint16_t adcValue [8] = {0};
 
-const char cursorChar[8] =
+const char lowChar[8] =
 { 
-0x18,
-0x1C,
-0x1E,
-0x1F,
-0x1F,
-0x1E,
-0x1C,
-0x18,
+0x04,
+0x04,
+0x04,
+0x04,
+0x04,
+0x15,
+0x0E,
+0x04,
 };
 
-const char celsiusChar[8] =
+const char highChar[8] =
 { 
-0x18,
-0x18,
-0x00,
-0x06,
-0x09,
-0x08,
-0x09,
-0x06,
+0x04,
+0x0E,
+0x15,
+0x04,
+0x04,
+0x04,
+0x04,
+0x04,
 };
+
+enum newChar {up, down, cursor};
+typedef void (*PtrF)();
 
 Tact frq;
 Hd44780 lcd;
-Gtimer heater (Gtimer::div128);
-Atimer fan (20);
 Btimer timer4;
-Button buttonEncoder (Gpio::A, buttEncPin);
-Button tilt (Gpio::A, tiltPin);
+Button set (Gpio::A, setPin);
+Button plus (Gpio::A, plusPin);
+Button minus (Gpio::A, minusPin);
 Buffer value;
-Pin encA (Gpio::B, encAPin, Gpio::Floating);
-Pin encB (Gpio::B, encBPin, Gpio::Floating);
-Pid regulator (p, i, d, TsetVal);
-Senc encoder (Gpio::B, encAPin, Gpio::B, encBPin, 100);
 Adc sensor (Adc::channel3);
 
-typedef void (*PtrF)();
-
-struct period_
-{
-  uint8_t lcd;
-  uint8_t adc;
-  uint8_t pid;
-}period = {10, 40, 100};
-
-struct encdr
-{
-  uint8_t state;
-  uint16_t count;
-}encod;
 
 struct flags
 {
-  unsigned encLongPress : 1;
-  unsigned encShortPress : 2;
-  unsigned encReady : 1;
-  unsigned screens :1;
+  unsigned setLongPress : 1;
+  unsigned setShortPress : 1;
+  unsigned PlusPress: 1;
+  unsigned screens :2;
   unsigned shift :1;
 }flag;
 
@@ -97,25 +76,27 @@ struct position
 {
   uint8_t row;
   uint8_t coloumn;
-}speedCursor, tempCursor, pCursor, iCursor, dCursor;
+}highPressCursor, lowPressCursor, dryPressCursor, periodCursor;
+
+position * ScreenCursor [3][2] = {
+  {0,0},
+{&highPressCursor, &lowPressCursor}, 
+{&dryPressCursor, &periodCursor}
+};
 
 struct data
 {
   uint16_t value;
   position pos;	
-}speed, currTemp, setTemp, pVal, iVal, dVal, pidVal;
-
-position * ScreenCursor [2][3] = {
-{&speedCursor, &tempCursor}, 
-{&pCursor, &iCursor, &dCursor}
-};
-
-enum newChar {celsius, cursor};
+}currPress, highPress, lowPress, dryPress, period;
 
 
-data * ScreenVal [2] [4]= {
-{&speed, &setTemp, &currTemp},
-{&pVal, &iVal, &dVal, &pidVal}
+
+
+data * ScreenVal [3] [2]= {
+ {&currPress},
+ {&highPress, &lowPress},
+ {&dryPress, &period}
 };
 
 
@@ -123,8 +104,9 @@ void mainScreen ();
 void pidScreen ();
 void changeScreen ();
 void getMainScreen ();
-void getPidScreen ();
-PtrF screenF [2] = {&getMainScreen, &getPidScreen};
+void getSet1Screen ();
+void getSet2Screen ();
+PtrF screenF [3] = {&getMainScreen, &getSet1Screen, &getSet2Screen};
 
 void changeLpFlag ();
 void changeSpFlag ();
@@ -195,19 +177,10 @@ INTERRUPT_HANDLER(TIM4_OVR_UIF, TIM4_OVR_UIF_vector)
     {
       tempAdc += sensor.getValue();
     }
-    currTemp.value = tempAdc >> 3;
+    currPress.value = tempAdc >> 3;
     counter.adc = 0;
   } 
   
- if (counter.pid>period.pid)
-  {
-    regulator.setP (pVal.value);
-    regulator.setI (iVal.value);
-    regulator.setD (dVal.value);
-    pidVal.value = regulator.compute (currTemp.value);
-    counter.pid = 0;    
-  }
-
 }
 void timer4_init ();
 
@@ -215,17 +188,18 @@ int main()
 {
   mainScreen ();
   pidScreen ();
-  buttonEncoder.setLongLimit (100);
-  buttonEncoder.setShortLimit (3); 
+  set.setLongLimit (100);
+  set.setShortLimit (3); 
+  plus.setShortLimit (3);
+  minus.setShortLimit (3);
   
-  buttonEncoder.setlongPressAction (changeLpFlag);
-  buttonEncoder.setshortPressAction (changeSpFlag);
+  set.setlongPressAction (changeLpFlag);
+  set.setshortPressAction (changeSpFlag);
   value.setFont (Buffer::Array_char);
   initHeater ();
   initFun ();
   initPosition ();
   initDataPosition ();
-  encoder.setValue (speed.value);
   timer4_init ();
   
   while (1)
@@ -236,44 +210,36 @@ int main()
 
 void initPosition ()
 {
-  speedCursor.coloumn = 8;
-  speedCursor.row = 0;
-  tempCursor.coloumn = 8;
-  tempCursor.row = 1;
-  pCursor.coloumn = 16;
-  pCursor.row = 0;
-  iCursor.coloumn = 21;
-  iCursor.row = 0;
-  dCursor.coloumn = 26;
-  dCursor.row = 0;
+  highPressCursor.coloumn = 8;
+  highPressCursor.row = 0;
+  lowPressCursor.coloumn = 8;
+  lowPressCursor.row = 1;
+  dryPressCursor.coloumn = 16;
+  dryPressCursor.row = 0;
+  periodCursor.coloumn = 26;
+  periodCursor.row = 0;
 }
 
 void initDataPosition ()
 {
-  speed.value = speedVal;
-  speed.pos.coloumn = 11;
-  speed.pos.row = 0;
-  currTemp.value = 0;
-  currTemp.pos.coloumn = 3;
-  currTemp.pos.row = 1;
-  setTemp.value = TsetVal;
-  setTemp.pos.coloumn = 12;
-  setTemp.pos.row = 1;
-  pVal.value = regulator.getP();
-  pVal.pos.coloumn = 18;
-  pVal.pos.row = 0;
-  iVal.value = regulator.getI ();
-  iVal.pos.coloumn = 23;
-  iVal.pos.row = 0;
-  dVal.value = regulator.getD ();
-  dVal.pos.coloumn = 28;
-  dVal.pos.row = 0;
+  highPress.value = highVal;
+  highPress.pos.coloumn = 11;
+  highPress.pos.row = 0;
+  lowPress.value = lowVal;
+  lowPress.pos.coloumn = 3;
+  lowPress.pos.row = 1;
+  dryPress.value = dryVal;
+  dryPress.pos.coloumn = 12;
+  dryPress.pos.row = 1;
+  period.value = periodVal;
+  period.pos.coloumn = 18;
+  period.pos.row = 0;
 }
 
 void mainScreen ()
 {
-  lcd.newChar (celsiusChar, celsius);
-  lcd.newChar (cursorChar, cursor);
+  lcd.newChar (highChar, up);
+  lcd.newChar (lowChar, down);
   lcd.setPosition (0, 0);
   lcd.sendString ("HeatGun");
   lcd.setPosition (0, 9);
@@ -292,10 +258,6 @@ void mainScreen ()
   lcd.data (0xFF);	
   lcd.setPosition (0, 7);
   lcd.data (0xFF);
-  speedCursor.row = 0;
-  speedCursor.coloumn = 9;
-  tempCursor.row = 1;
-  tempCursor.coloumn = 8;
 }
 
 void pidScreen ()
@@ -331,20 +293,15 @@ void getPidScreen ()
 
 void changeLpFlag ()
 {
-  if (flag.encLongPress) 
+  if (flag.setLongPress) 
   {
-    flag.encLongPress = 0;
-    //flag.encShortPress = flag.screens;
+    flag.setLongPress = 0;
     clearCursors ();
   }
   else 
   {
-    flag.encLongPress = 1;
-    flag.encShortPress = 0;
-    encoder.setValue (ScreenVal [flag.screens][flag.encShortPress]->value); 
-    lcd.setPosition (ScreenCursor[flag.screens][flag.encShortPress]->row, ScreenCursor[flag.screens][flag.encShortPress]->coloumn);
-    lcd.data (cursor);
-   
+    flag.setLongPress = 1;
+    flag.setShortPress = 0;
   }
 }
 
@@ -380,21 +337,6 @@ void changeSpFlag ()
   }
 }
 	
-
-void initHeater ()
-{
-  //период 100мs
-  heater.setArr (12500);
-  heater.pwmMode (Gtimer::channel2);
-  heater.start ();
-}
-
-void initFun ()
-{
-  fan.setArr (100);
-  fan.pwmMode (Atimer::channel3);
-  fan.start ();
-}
 
 void timer4_init ()
 {
