@@ -100,9 +100,12 @@ data * ScreenVal [3] [2]= {
  {&dryPress, &period}
 };
 
+uint8_t screens [3] = {0,8,16};
+
 
 void mainScreen ();
-void pidScreen ();
+void set1Screen ();
+void set2Screen ();
 void changeScreen ();
 void getMainScreen ();
 void getSet1Screen ();
@@ -122,16 +125,17 @@ INTERRUPT_HANDLER(TIM4_OVR_UIF, TIM4_OVR_UIF_vector)
 {
   static struct counters
   {
-    uint8_t lcd;
-    uint8_t adc;
-    uint8_t pid;
-    //uint8_t button;
+    uint16_t lcd;
+    uint16_t adc;
+    uint16_t button;
+    
   }counter = {0,0,0};
   timer4.clearFlag();
   ++counter.lcd;
   ++counter.adc;
-  ++counter.pid;
-  //++counter.button;
+  ++counter.button;
+  static uint8_t prevPosition=0;
+  
 
     
     set.scanButton ();
@@ -152,8 +156,8 @@ INTERRUPT_HANDLER(TIM4_OVR_UIF, TIM4_OVR_UIF_vector)
 
   if (counter.lcd>100)
   {
-    screenF [flag.screens]();
-    
+    if (prevPosition != screens[flag.screens]) lcd.setShiftPosition ( screens[flag.screens]);
+   
     if (flag.setLongPress)
     {   
       clearCursors ();
@@ -195,7 +199,8 @@ int main()
 {
   Nrf24l01 radio;
   mainScreen ();
-  pidScreen ();
+  set1Screen ();
+  set2Screen ();
   set.setLongLimit (100);
   set.setShortLimit (3); 
   plus.setShortLimit (3);
@@ -222,66 +227,58 @@ void initPosition ()
   lowPressCursor.row = 1;
   dryPressCursor.coloumn = 16;
   dryPressCursor.row = 0;
-  periodCursor.coloumn = 26;
-  periodCursor.row = 0;
+  periodCursor.coloumn = 16;
+  periodCursor.row = 1;
 }
 
 void initDataPosition ()
 {
+  currPress.value = 0;
+  currPress.pos.coloumn = 3;
+  currPress.pos.row = 0;
   highPress.value = highVal;
-  highPress.pos.coloumn = 11;
+  highPress.pos.coloumn = 12;
   highPress.pos.row = 0;
   lowPress.value = lowVal;
-  lowPress.pos.coloumn = 3;
+  lowPress.pos.coloumn = 12;
   lowPress.pos.row = 1;
   dryPress.value = dryVal;
-  dryPress.pos.coloumn = 12;
-  dryPress.pos.row = 1;
+  dryPress.pos.coloumn = 20;
+  dryPress.pos.row = 0;
   period.value = periodVal;
-  period.pos.coloumn = 18;
-  period.pos.row = 0;
+  period.pos.coloumn = 20;
+  period.pos.row = 1;
 }
 
 void mainScreen ()
 {
+  lcd.setPosition (0, 1);
+  lcd.sendString ("P=");
+  lcd.setPosition (0, 6);
+  lcd.data ('B');
+}
+
+void set1Screen ()
+{
   lcd.newChar (highChar, up);
   lcd.newChar (lowChar, down);
-  lcd.setPosition (0, 0);
-  lcd.sendString ("HeatGun");
   lcd.setPosition (0, 9);
-  lcd.sendString ("F=");
-  lcd.setPosition (0, 14);
-  lcd.data ('%');
-  lcd.setPosition (1, 0);
-  lcd.sendString ("Tc=");
-  lcd.setPosition (1, 6);
-  lcd.data (0);	
+  lcd.data ('P');
+  lcd.data (up);
+  lcd.data ('=');
   lcd.setPosition (1, 9);
-  lcd.sendString ("Ts=");
-  lcd.setPosition (1, 15);
-  lcd.data (0);	
-  lcd.setPosition (1, 7);
-  lcd.data (0xFF);	
-  lcd.setPosition (0, 7);
-  lcd.data (0xFF);
+  lcd.data ('P');
+  lcd.data (down);
+  lcd.data ('=');
 }
 
-void pidScreen ()
+void set2Screen ()
 {
   lcd.setPosition (0, 17);
-  lcd.data ('P');
-  lcd.setPosition (0, 19);
-  lcd.data ('.');
-  lcd.setPosition (0, 22);
-  lcd.sendString ("I");	
-  lcd.setPosition (0, 24);
-  lcd.data ('.');
-  lcd.setPosition (0, 27);
-  lcd.sendString ("D");	
-  lcd.setPosition (0, 29);
-  lcd.data ('.');
+  lcd.sendString ("P#=");
+  lcd.setPosition (1, 17);
+  lcd.sendString ("T=");
 }
-
 void getMainScreen ()
 {
   lcd.command (clear_counter);

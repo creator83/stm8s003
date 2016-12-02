@@ -21,8 +21,6 @@ const double d  = 3.0;
 
 const uint8_t buttEncPin = 1;
 const uint8_t tiltPin = 2;
-//const uint8_t heaterPin = 3;
-//const uint8_t fanPin = 3;
 const uint8_t encAPin = 4;
 const uint8_t encBPin = 5;
 
@@ -63,8 +61,6 @@ Btimer timer4;
 Button buttonEncoder (Gpio::A, buttEncPin);
 Button tilt (Gpio::A, tiltPin);
 Buffer value;
-Pin encA (Gpio::B, encAPin, Gpio::Floating);
-Pin encB (Gpio::B, encBPin, Gpio::Floating);
 Pid regulator (p, i, d, TsetVal);
 Senc encoder (Gpio::B, encAPin, Gpio::B, encBPin, 100);
 Adc sensor (Adc::channel3);
@@ -73,16 +69,10 @@ typedef void (*PtrF)();
 
 struct period_
 {
-  uint8_t lcd;
-  uint8_t adc;
-  uint8_t pid;
-}period = {10, 40, 100};
-
-struct encdr
-{
-  uint8_t state;
-  uint16_t count;
-}encod;
+  uint16_t lcd;
+  uint16_t adc;
+  uint8_t button;
+}period = {400, 400, 4};
 
 struct flags
 {
@@ -110,6 +100,8 @@ position * ScreenCursor [2][3] = {
 {&pCursor, &iCursor, &dCursor}
 };
 
+uint8_t screens [3] = {0,8,16};
+
 enum newChar {celsius, cursor};
 
 
@@ -122,9 +114,9 @@ data * ScreenVal [2] [4]= {
 void mainScreen ();
 void pidScreen ();
 void changeScreen ();
-void getMainScreen ();
-void getPidScreen ();
-PtrF screenF [2] = {&getMainScreen, &getPidScreen};
+//void getMainScreen ();
+//void getPidScreen ();
+//PtrF screenF [2] = {&getMainScreen, &getPidScreen};
 
 void changeLpFlag ();
 void changeSpFlag ();
@@ -141,18 +133,20 @@ INTERRUPT_HANDLER(TIM4_OVR_UIF, TIM4_OVR_UIF_vector)
   {
     uint8_t lcd;
     uint8_t adc;
-    uint8_t pid;
-    //uint8_t button;
+    uint8_t button;
   }counter = {0,0,0};
   timer4.clearFlag();
+  static uint8_t prevPosition=0;
   ++counter.lcd;
   ++counter.adc;
-  ++counter.pid;
-  //++counter.button;
-
-
+  ++counter.button;
+  
+  if (counter.button>period.lcd)
+  {
     buttonEncoder.scanButton ();
     buttonEncoder.scanAction();
+    counter.button = 0;
+  }
     
   
   //опрос энкодера при длительном нажатии кнопки
@@ -160,7 +154,7 @@ INTERRUPT_HANDLER(TIM4_OVR_UIF, TIM4_OVR_UIF_vector)
 
   if (counter.lcd>period.lcd)
   {
-    screenF [flag.screens]();
+    if (prevPosition != screens[flag.screens]) lcd.setShiftPosition ( screens[flag.screens]);
     
     if (flag.encLongPress)
     {   
@@ -196,16 +190,12 @@ INTERRUPT_HANDLER(TIM4_OVR_UIF, TIM4_OVR_UIF_vector)
       tempAdc += sensor.getValue();
     }
     currTemp.value = tempAdc >> 3;
-    counter.adc = 0;
-  } 
-  
- if (counter.pid>period.pid)
-  {
+    
     regulator.setP (pVal.value);
     regulator.setI (iVal.value);
     regulator.setD (dVal.value);
     pidVal.value = regulator.compute (currTemp.value);
-    counter.pid = 0;    
+    counter.adc = 0;
   }
 
 }
@@ -334,7 +324,6 @@ void changeLpFlag ()
   if (flag.encLongPress) 
   {
     flag.encLongPress = 0;
-    //flag.encShortPress = flag.screens;
     clearCursors ();
   }
   else 
@@ -343,26 +332,13 @@ void changeLpFlag ()
     flag.encShortPress = 0;
     encoder.setValue (ScreenVal [flag.screens][flag.encShortPress]->value); 
     lcd.setPosition (ScreenCursor[flag.screens][flag.encShortPress]->row, ScreenCursor[flag.screens][flag.encShortPress]->coloumn);
-    lcd.data (cursor);
-   
+    lcd.data (cursor);  
   }
 }
 
 void changeSpFlag ()
 {
-  if (!flag.encLongPress)
-  {
-    if (flag.encShortPress) 
-    {
-    flag.encShortPress = 0;
-    flag.screens = 0;
-    }
-    else 
-    {
-      flag.encShortPress = 1;
-      flag.screens = 1;
-    }
-  }
+  if (!flag.encLongPress) flag.screens ^= 1;
 	
   else if (flag.encLongPress&&flag.screens)//screenPid
   {
@@ -399,7 +375,7 @@ void initFun ()
 void timer4_init ()
 {
   timer4.setPsc (Btimer::div128);
-  timer4.setArr (124);
+  timer4.setArr (30);
   enableInterrupts();
   timer4.interrupt (true);
   timer4.start ();
