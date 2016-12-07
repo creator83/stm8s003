@@ -1,5 +1,5 @@
 #include "stm8s.h"
-#include "gpio.h"
+#include "pin.h"
 #include "tact.h"
 #include "delay.h"
 
@@ -20,7 +20,7 @@ public:
   enum mode {master,slave};
   
 private:
-  Gpio pin;
+  Pin sda, scl;
   static const init init_mode [2];
   enum pin_dif {SCL = 4,SDA};
   enum speed {standart, fast};
