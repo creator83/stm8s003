@@ -205,7 +205,7 @@ INTERRUPT_HANDLER(TIM4_OVR_UIF, TIM4_OVR_UIF_vector)
     regulator.setI (iVal.value);
     regulator.setD (dVal.value);
     pidVal.value = regulator.compute (currTemp.value);
-    counter.pid = 0;    
+    counter.pid = 0;   
   }
 
 }
@@ -352,16 +352,9 @@ void changeSpFlag ()
 {
   if (!flag.encLongPress)
   {
-    if (flag.encShortPress) 
-    {
-    flag.encShortPress = 0;
-    flag.screens = 0;
-    }
-    else 
-    {
-      flag.encShortPress = 1;
-      flag.screens = 1;
-    }
+      if (flag.encShortPress) flag.encShortPress = 0;
+      else flag.encShortPress = 1;
+      flag.screens ^= 1;
   }
 	
   else if (flag.encLongPress&&flag.screens)//screenPid
