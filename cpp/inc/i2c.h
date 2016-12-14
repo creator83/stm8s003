@@ -9,27 +9,41 @@
 //Скорости в kHz при standart mode и fast mode
 const uint16_t speed_[2] = {100,400};
 
-class i2c;
-typedef void (i2c::*init)(uint8_t);
+class I2c;
+typedef void (I2c::*init)(uint8_t);
 
-class i2c
+class I2c
 {
 //variables
 public:
 
   enum mode {master,slave};
+  enum operation {write, read};
   
 private:
   Pin sda, scl;
-  static const init init_mode [2];
+  static init init_mode [2];
   enum pin_dif {SCL = 4,SDA};
   enum speed {standart, fast};
   uint8_t speed_mode;
  //function
 public:
-  i2c(mode m, speed d = standart);
-  uint8_t wr_reg (uint8_t adress, uint8_t reg, uint8_t *data, uint8_t l);
-
+  I2c(mode m, speed d = standart);
+  void putData (uint8_t &);
+  
+  bool wReg (uint8_t adress, uint8_t reg, uint8_t *data, uint8_t l);
+  
+  bool flagBusy ();
+  bool flagTxe ();
+  bool flagRxne ();
+  bool flagBtf ();
+  bool flagSb ();
+  bool flagAddr ();
+  bool flagStop ();
+ 
+  uint8_t readSR3 ();
+  
+  
 private:
   void init_master (uint8_t speed);
   void init_slave ();
