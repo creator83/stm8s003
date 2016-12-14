@@ -166,16 +166,7 @@ void Hd44780::Shift(Shifter s, Direction d, uint8_t val)
 	}
 
 }
-void Hd44780::set_shift_position (uint8_t pos)
-{
-	if (pos<position) Shift(Hd44780::Window, Hd44780::Right, position - pos);
-	if (pos > position) Shift(Hd44780::Window, Hd44780::Left, pos - position);
-}
 
-uint8_t Hd44780::get_Shift_position ()
-{
-	return position;
-}
 
 void Hd44780::rsAssert ()
 {
@@ -221,4 +212,16 @@ void Hd44780::setData (uint8_t value)
   {
     d[i]->SetPinState (pins[i], value & 1 << i);
   }
+}
+
+void Hd44780::setShiftPosition (uint8_t pos)
+{
+  command (clear_counter);
+  for (uint8_t i=0; i< pos;++i)command (shift|Left|Window);
+  position = pos;
+}
+  
+uint8_t & Hd44780::getShiftPosition ()
+{
+  return position;
 }

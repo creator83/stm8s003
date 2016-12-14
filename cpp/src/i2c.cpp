@@ -1,22 +1,20 @@
 #include "i2c.h"
 
-const init i2c::init_mode [2]= {};
+init I2c::init_mode [2]= {};
 
-i2c::i2c(mode m, speed s)
-:pin (Gpio::B)
+I2c::I2c(mode m, speed s)
+:sda (Gpio::B, SDA,Gpio::Pullup), scl (Gpio::B, SCL,Gpio::Pullup)
 {
   speed_mode = s;
-  pin.setInPin (SCL, Gpio::Pullup);
-  pin.setInPin (SDA, Gpio::Pullup);
-  (this->*(i2c::init_mode[m]))(speed_mode);
+  (this->*(I2c::init_mode[m]))(speed_mode);
 }
 
-void i2c::init_slave ()
+void I2c::init_slave ()
 {
   
 }
 
-void i2c::init_master (uint8_t speed)
+void I2c::init_master (uint8_t speed)
 {
   unsigned long int ccr;
   //Отключаем I2C
@@ -25,7 +23,7 @@ void i2c::init_master (uint8_t speed)
   //Выбираем стандартный режим 
    I2C->CCRH &= ~I2C_CCRH_FS;
   //CCR = Fmaster/2*Fiic= 12MHz/2*100kHz
-  ccr = tact::get_frq()/(2*speed_ [speed]);
+  ccr = Tact::get_frq()/(2*speed_ [speed]);
   
   
   //Set Maximum Rise Time: 1000ns max in Standard Mode
@@ -42,11 +40,17 @@ void i2c::init_master (uint8_t speed)
   I2C->CR2 |= I2C_CR2_ACK;
 }
 
-uint8_t i2c::wr_reg (uint8_t adress, uint8_t reg, uint8_t *data, uint8_t l)
+void I2c::putData (uint8_t &val)
+{
+  I2C->DR = val;
+}
+
+
+bool I2c::wReg (uint8_t adress, uint8_t reg, uint8_t *data, uint8_t l)
 {
   //Ждем освобождения шины I2C
   delay_ms (10);
-  while (I2C->SR3 & (1<<I2C_SR3_BUSY));
+  while (I2C->SR3 & I2C_SR3_BUSY);
     
   //Генерация СТАРТ-посылки
   I2C->CR2 |= I2C_CR2_START;
@@ -61,32 +65,65 @@ uint8_t i2c::wr_reg (uint8_t adress, uint8_t reg, uint8_t *data, uint8_t l)
   delay_ms (1);
   while(!(I2C->SR1 &I2C_SR1_ADDR));
   //Очистка бита ADDR чтением регистра SR3
-  I2C_SR3;
+  uint8_t temp = I2C->SR3;
   
   
   //Ждем освобождения регистра данных
-  wait_event(!I2C_SR1_TXE, 1);
+  while(!I2C->SR1& I2C_SR1_TXE);
   //Отправляем адрес регистра
-  I2C_DR = reg_addr;
+  I2C->DR = reg;
   
   //Отправка данных
-  while(length--){
+  while(l--){
     //Ждем освобождения регистра данных
-    wait_event(!I2C_SR1_TXE, 1);
+    while(!I2C->SR1& I2C_SR1_TXE);
     //Отправляем адрес регистра
-    I2C_DR = *data++;
+    I2C->DR = *data++;
   }
   
   //Ловим момент, когда DR освободился и данные попали в сдвиговый регистр
-  wait_event(!(I2C_SR1_TXE && I2C_SR1_BTF), 1);
+  while(!(I2C->SR1 & I2C_SR1_TXE && I2C->SR1 & I2C_SR1_BTF));
   
   //Посылаем СТОП-посылку
-  I2C_CR2_STOP = 1;
+  I2C->CR2 |= I2C_CR2_STOP;
   //Ждем выполнения условия СТОП
-  wait_event(I2C_CR2_STOP, 1);
-  
-  return I2C_SUCCESS;
-  return 0;
+  while(I2C->CR2&I2C_CR2_STOP);
+  return true;
+}
+
+bool I2c::flagBusy ()
+{
+  return I2C->SR3 & I2C_SR3_BUSY;
+}
+
+bool I2c::flagTxe ()
+{
+  return I2C->SR1 & I2C_SR1_TXE;
+}
+
+bool I2c::flagRxne ()
+{
+  return I2C->SR1&I2C_SR1_RXNE;
+}
+
+bool I2c::flagBtf ()
+{
+  return I2C->SR1 & I2C_SR1_BTF;
+}
+
+bool I2c::flagSb ()
+{
+  return I2C->SR1 & I2C_SR1_SB;
+}
+
+bool I2c::flagAddr ()
+{
+  return I2C->SR1 &I2C_SR1_ADDR;
+}
+
+bool I2c::flagStop ()
+{
+  return I2C->CR2&I2C_CR2_STOP;
 }
 
 

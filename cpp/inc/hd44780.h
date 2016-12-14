@@ -95,8 +95,8 @@ public:
   void checkBusy ();
   void Shift (Shifter s, Direction d, uint8_t val);
   void Shift_simple (Shifter s, Direction d, uint8_t val);
-  void set_shift_position (uint8_t pos);
-  uint8_t get_Shift_position ();
+  void setShiftPosition (uint8_t pos);
+  uint8_t & getShiftPosition ();
 protected:
 private:
   void clearData ();

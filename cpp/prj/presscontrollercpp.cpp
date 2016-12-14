@@ -11,6 +11,8 @@
 #include "pwm.h"
 #include "adc.h"
 #include "nrf24l01.h"
+#include "shape.h"
+#include "str.h"
 
 
 
@@ -105,6 +107,9 @@ uint8_t screens [3] = {0,8,16};
 void mainScreen ();
 void set1Screen ();
 void set2Screen ();
+
+void screen (Shape *, uint8_t l);
+
 void changeScreen ();
 void getMainScreen ();
 void getSet1Screen ();
@@ -196,6 +201,7 @@ void timer4_init ();
 
 int main()
 {
+  Shape::driver = &lcd;
   Nrf24l01 radio;
   mainScreen ();
   set1Screen ();
