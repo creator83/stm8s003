@@ -29,7 +29,11 @@ private:
  //function
 public:
   I2c(mode m, speed d = standart);
-  void putData (uint8_t &);
+  void start ();
+  void restart ();
+  void stop ();
+  void putData (uint8_t );
+  uint8_t getData ();
   
   bool wReg (uint8_t adress, uint8_t reg, uint8_t *data, uint8_t l);
   

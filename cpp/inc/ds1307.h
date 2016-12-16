@@ -24,9 +24,15 @@ class Ds1307
 {
   I2c * driver;
   uint8_t adress;
+  uint8_t data [8];
 //variables
 public:
   Ds1307 (I2c *);
+  void read (uint8_t l);
+  void read (uint8_t ptr, uint8_t l);
+  void write (uint8_t reg, uint8_t val);
+  void write (uint8_t reg, uint8_t * arr, uint8_t l);
+  
 };
 
 #endif
