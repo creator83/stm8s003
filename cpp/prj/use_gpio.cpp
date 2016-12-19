@@ -7,7 +7,16 @@ Pin triac2 (Gpio::D, 3, Gpio::Low);
 Pin triac3 (Gpio::D, 4, Gpio::Low);
 Pin triac4 (Gpio::D, 5, Gpio::Low);
 Pin triac5 (Gpio::D, 6, Gpio::Low);
-
+union rgb24
+{
+	uint32_t color;
+	struct colors
+	{
+		uint8_t red;
+		uint8_t green;
+		uint8_t blue;
+	};
+};
 
 Pin * triacs [5] = {&triac1, &triac2, &triac3, &triac4, &triac5};
 
