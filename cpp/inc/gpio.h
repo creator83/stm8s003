@@ -12,7 +12,7 @@ public:
   enum Port {A , B , C , D};
   enum PP {Floating , Pullup};
   enum Interrupt {Off , On};
-  enum speed {Low,High};
+  enum speed {lowSpeed,highSpeed};
   enum out {OpenDrain , PushPull};
   enum rgstr {
   ODR ,
@@ -31,12 +31,12 @@ public:
   Gpio(Port p );
   Gpio();
   void setPort (Port);
-  void setOutPin (unsigned char pin , speed s = Low , out o = PushPull);	
+  void setOutPin (unsigned char pin , speed s = lowSpeed , out o = PushPull);	
   void setInPin (unsigned char pin,  PP p=Floating, Interrupt i=Off);
   void setPin (unsigned int pin );
   void clearPin (unsigned char pin);	
   void setValPort (unsigned int value);	
-  void setOutPort (unsigned int value, speed s = Low );		
+  void setOutPort (unsigned int value, speed s = lowSpeed );		
   void ChangePinState (unsigned char pin);
   void SetPinState (unsigned char pin , unsigned char state);
   bool pinState (uint8_t);

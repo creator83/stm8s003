@@ -38,6 +38,21 @@ Pin::Pin(Port port_, uint8_t p, PP p_, Interrupt i)
   *(reg)(portAdr[prt]+CR2) |= i << pin_;
 }
 
+void Pin::setIn (PP p)
+{
+  //настройка вход
+  *(reg)(portAdr[prt]+DDR) &= ~(1 << pin_);
+  //настройка подтяжки Floating/Pull-up
+  *(reg)(portAdr[prt]+CR1) &= ~(1 << pin_);
+  *(reg)(portAdr[prt]+CR1) = p << pin_;
+}
+
+void Pin::setOut ()
+{
+  //настройка выход
+  *(reg)(portAdr[prt]+DDR) |= 1 << pin_;
+}
+
 void Pin::set ()
 {
   *(reg)(portAdr[prt]+ODR) |= 1 << pin_;
