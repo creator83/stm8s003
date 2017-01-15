@@ -11,37 +11,17 @@
 #include "pwm.h"
 #include "senc.h"
 #include "adc.h"
+#include "i2c.h"
 
-
-
-const char cursorChar[8] =
-{ 
-0x18,
-0x1C,
-0x1E,
-0x1F,
-0x1F,
-0x1E,
-0x1C,
-0x18,
-};
-
-const char celsiusChar[8] =
-{ 
-0x18,
-0x18,
-0x00,
-0x06,
-0x09,
-0x08,
-0x09,
-0x06,
-};
 
 Tact frq;
 Hd44780 lcd;
 Adc sensor(Adc::channel5);
 Buffer value;
+uint8_t *eepromPtr;
+
+const uint8_t address = 0xD0;
+
 
 
 INTERRUPT_HANDLER(adc, ADC1_EOC_vector)
@@ -53,36 +33,33 @@ INTERRUPT_HANDLER(adc, ADC1_EOC_vector)
   for (uint8_t i=0;i<10;++i) result += data [i];
   result<<=1;
   value.parsDec16 (result, 5);
-  lcd.setPosition (0,2);
-  lcd.sendString (value.getElement (0));   
+  lcd.setPosition (1,0);
+  lcd.sendString (value.getElement (0)); 
+  value.parsDec16 (*eepromPtr, 2);
+  lcd.setPosition (1,6);
+  lcd.sendString (value.getElement (3)); 
 }
+
+uint8_t data;
 
 int main()
 { 
+  I2c driverI2c ;
   value.setFont (Buffer::Array_char);
-  lcd.setPosition (1,0);
-  lcd.sendString ("Hello");
-  lcd.newChar (celsiusChar,1);
-  lcd.setPosition (0,0); 
-  lcd.data (1);
-  
-  lcd.setPosition (0,8);
-  lcd.sendString ("Bye");
-  
-  lcd.setPosition (0,16);
-  lcd.sendString ("Hey");
-
-  lcd.setPosition (0,24);
-  lcd.sendString ("really");
-  
-  lcd.setPosition (0,32);
-  lcd.sendString ("HeHe");
+  lcd.setPosition (0,0);
+  lcd.sendString ("ADC res");
+  FLASH->DUKR = 0xAE;
+  FLASH->DUKR = 0x56;
+  eepromPtr = (uint8_t*)0x004000;
+  //*eepromPtr = 50;
   sensor.setContiniusMode ();
   sensor.setBuffer ();
   sensor.enableInterrupt ();
-  sensor.start ();
+  //sensor.start ();
   while (1)
   {
+    driverI2c.rReg (address, 0x00, &data,1);
+    
   }
 }
 

@@ -5,10 +5,14 @@
 #ifndef BUTTON_H
 #define BUTTON_H
 
+class Button;
+typedef void (Button::*Func)();
+
 class Button
 {
 //variables
 public:
+  enum mode {oneAction, twoAction};
 private:
   uint16_t counter;
   bool shortPress;
@@ -23,10 +27,14 @@ private:
   void (*longFunction)();
   uint8_t p;
   Pin pin_;
+  static Func buttonFunc [2];
+  uint8_t scanMode;
 //func
 public:
-Button (Gpio::Port, uint8_t pin_);
+Button (Gpio::Port, uint8_t pin_, mode m);
   void scanButton ();
+  void scanButtonSingle ();
+  void scanButtonDouble ();
   void scanAction ();
   void setShortLimit (uint16_t);
   void setLongLimit (uint16_t);
