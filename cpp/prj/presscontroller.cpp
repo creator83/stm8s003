@@ -2,29 +2,22 @@
 #include "tact.h"
 #include "delay.h"
 #include "hd44780.h"
-#include "qenc.h"
 #include "gtimer.h"
 #include "atimer.h"
 #include "btimer.h"
 #include "buffer.h"
 #include "button.h"
-#include "pwm.h"
 #include "adc.h"
-#include "nrf24l01.h"
 
-
-
-const uint8_t setPin = 1;
-const uint8_t plusPin = 2;
-const uint8_t minusPin = 2;
 
 const uint8_t highVal = 28;
 const uint8_t lowVal = 18;
 const uint8_t dryVal = 4;
 const uint8_t periodVal = 4;
 
+uint8_t * highValEeprom, lowValEeprom, dryValEeprom;
 
-uint16_t adcValue [8] = {0};
+uint16_t adcValue [10] = {0};
 
 const char lowChar[8] =
 { 
@@ -56,11 +49,11 @@ typedef void (*PtrF)();
 Tact frq;
 Hd44780 lcd;
 Btimer timer4;
-Button set (Gpio::A, setPin);
-Button plus (Gpio::A, plusPin);
-Button minus (Gpio::A, minusPin);
+Button set (Gpio::A, 5, Button::twoAction);
+Button plus (Gpio::A, 4, Button::oneAction);
+Button minus (Gpio::A, 3, Button::oneAction);
 Buffer value;
-Adc sensor (Adc::channel3);
+Adc sensor(Adc::channel5);
 
 
 struct flags
@@ -120,6 +113,22 @@ void initPosition ();
 void initDataPosition ();
 void clearCursors ();
 
+INTERRUPT_HANDLER(adc, ADC1_EOC_vector)
+{
+  sensor.clearEoc ();
+  uint16_t data [10];
+  uint16_t result=0;
+  sensor.getBuffer (data);
+  for (uint8_t i=0;i<10;++i) result += data [i];
+  result<<=1;
+  value.parsDec16 (result, 5);
+  lcd.setPosition (1,0);
+  lcd.sendString (value.getElement (0)); 
+  //value.parsDec16 (*eepromPtr, 2);
+  lcd.setPosition (1,6);
+  lcd.sendString (value.getElement (3)); 
+}
+
 INTERRUPT_HANDLER(TIM4_OVR_UIF, TIM4_OVR_UIF_vector)
 {
   static struct counters
@@ -137,8 +146,8 @@ INTERRUPT_HANDLER(TIM4_OVR_UIF, TIM4_OVR_UIF_vector)
   
 
     
-    set.scanButton ();
-    set.scanAction();
+  set.scanButton ();
+  set.scanAction();
     
      //опрос кнопок +, - при длительном нажатии кнопки
     if (flag.setLongPress)
@@ -149,10 +158,6 @@ INTERRUPT_HANDLER(TIM4_OVR_UIF, TIM4_OVR_UIF_vector)
       minus.scanAction();
     }
    
-    
-  
- 
-
   if (counter.lcd>100)
   {
     if (prevPosition != screens[flag.screens]) lcd.setShiftPosition ( screens[flag.screens]);
@@ -196,7 +201,6 @@ void timer4_init ();
 
 int main()
 {
-  Nrf24l01 radio;
   mainScreen ();
   set1Screen ();
   set2Screen ();
@@ -207,14 +211,25 @@ int main()
   
   set.setlongPressAction (changeLpFlag);
   set.setshortPressAction (changeSpFlag);
+  
   value.setFont (Buffer::Array_char);
   initPosition ();
   initDataPosition ();
-  timer4_init ();
+  sensor.setContiniusMode ();
+  sensor.setBuffer ();
+  sensor.enableInterrupt ();
+  //sensor.start ();
+  //timer4_init ();
   
   while (1)
   {
+    for (uint8_t i=0;i<25;i+=8) 
+    {
+      lcd.setShiftPosition (i);
+      delay_ms (1000);
+    }
     
+        
   }
 }
 
@@ -252,10 +267,12 @@ void initDataPosition ()
 
 void mainScreen ()
 {
-  lcd.setPosition (0, 1);
+  lcd.setPosition (0, 0);
+  lcd.sendString ("Current");
+  lcd.setPosition (1, 1);
   lcd.sendString ("P=");
-  lcd.setPosition (0, 6);
-  lcd.data ('B');
+  lcd.setPosition (1, 6);
+  lcd.data ('b');
 }
 
 void set1Screen ()
@@ -274,8 +291,8 @@ void set1Screen ()
 
 void set2Screen ()
 {
-  lcd.setPosition (0, 17);
-  lcd.sendString ("P#=");
+  lcd.setPosition (0, 16);
+  lcd.sendString ("#P=");
   lcd.setPosition (1, 17);
   lcd.sendString ("T=");
 }
@@ -300,7 +317,7 @@ void changeLpFlag ()
   if (flag.setLongPress) 
   {
     flag.setLongPress = 0;
-    clearCursors ();
+    //clearCursors ();
   }
   else 
   {

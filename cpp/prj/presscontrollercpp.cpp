@@ -14,7 +14,7 @@
 #include "shape.h"
 #include "str.h"
 
-
+/*
 
 const uint8_t setPin = 1;
 const uint8_t plusPin = 2;
@@ -198,10 +198,21 @@ INTERRUPT_HANDLER(TIM4_OVR_UIF, TIM4_OVR_UIF_vector)
   
 }
 void timer4_init ();
-
+*/
 int main()
 {
-  Shape::driver = &lcd;
+  Shape * layer[]= {0};
+  //Shape::driver = &lcd;
+  Str str1 (0, 1, "KJL");
+  Str str2 (1, 1, "LLO");
+  layer [0] = & str1;
+  layer [1] = & str2;
+  uint8_t n = sizeof layer/sizeof *layer;
+  for (uint8_t i=0;i<n;++i)
+  {
+    layer[i]->draw();
+  }
+  /*
   Nrf24l01 radio;
   mainScreen ();
   set1Screen ();
@@ -216,14 +227,14 @@ int main()
   value.setFont (Buffer::Array_char);
   initPosition ();
   initDataPosition ();
-  timer4_init ();
+  timer4_init ();*/
   
   while (1)
   {
     
   }
 }
-
+/*
 void initPosition ()
 {
   
@@ -352,4 +363,4 @@ void clearCursors ()
       lcd.data (' ');
     }
   }
-}
+}*/

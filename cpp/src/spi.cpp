@@ -5,8 +5,8 @@ Spi::Spi(Division div, Cpol cpl , Cpha cph , Role r )
 :pin(Gpio::C)
 {
   CLK->PCKENR1 |= CLK_PCKENR1_SPI;
-  pin.setOutPin (SCK , Gpio::High);
-  pin.setOutPin (MOSI , Gpio::High);
+  pin.setOutPin (SCK , Gpio::highSpeed);
+  pin.setOutPin (MOSI , Gpio::highSpeed);
   pin.setInPin (MISO,Gpio::Pullup);
   
   //настройка SPI

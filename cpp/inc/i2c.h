@@ -18,24 +18,32 @@ class I2c
 public:
 
   enum mode {master,slave};
-  enum operation {write, read};
+  enum operation {wOperation = 0xFE, rOperation = 0xFF};
   
 private:
-  Pin sda, scl;
+  //Pin sda, scl;
   static init init_mode [2];
-  enum pin_dif {SCL = 4,SDA};
+  enum pin_dif {SCL = 4,SDA = 5};
   enum speed {standart, fast};
   uint8_t speed_mode;
  //function
 public:
-  I2c(mode m, speed d = standart);
+
+  I2c();
+  void putData (uint8_t );
+  uint8_t getData ();
+
   void start ();
   void restart ();
   void stop ();
-  void putData (uint8_t );
-  uint8_t getData ();
+  void setAddress (uint8_t );
+  
+  void write (uint8_t val);
+
   
   bool wReg (uint8_t adress, uint8_t reg, uint8_t *data, uint8_t l);
+  bool rReg (uint8_t adress, uint8_t reg, uint8_t *data, uint8_t l);
+  
   
   bool flagBusy ();
   bool flagTxe ();
@@ -49,7 +57,7 @@ public:
   
   
 private:
-  void init_master (uint8_t speed);
+  void init_master ();
   void init_slave ();
 };
 

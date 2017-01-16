@@ -21,7 +21,13 @@ public:
   Adc(channel);
   void clearFlags ();
   uint16_t getValue ();
- 
+  void enableInterrupt ();
+  void disableInterrupt ();
+  void setContiniusMode ();
+  void setBuffer ();
+  void start ();
+  void clearEoc ();
+  void getBuffer (uint16_t *dta);
 };
 
 

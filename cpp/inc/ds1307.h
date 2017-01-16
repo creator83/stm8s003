@@ -18,13 +18,20 @@ namespace ds1307Registers
   const uint8_t control = 0x07;
 }
 
+const uint8_t address = 0xD0;
+
 
 
 class Ds1307
 {
   I2c * driver;
-  uint8_t adress;
   uint8_t data [8];
+  struct data
+  {
+    uint8_t seconds;
+    uint8_t minutes;
+    uint8_t hours;
+  };
 //variables
 public:
   Ds1307 (I2c *);
