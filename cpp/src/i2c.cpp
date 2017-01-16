@@ -113,7 +113,7 @@ bool I2c::wReg (uint8_t address, uint8_t reg, uint8_t *data, uint8_t l)
 bool I2c::rReg (uint8_t address, uint8_t reg, uint8_t *data, uint8_t length)
 {
   start ();
-  setAddress (address|I2c::wOperation);
+  setAddress (address&I2c::wOperation);
   write (reg);
   while (!(flagTxe()&&flagBtf()));
   restart ();
@@ -244,4 +244,7 @@ bool I2c::flagStop ()
   return I2C->CR2&I2C_CR2_STOP;
 }
 
-
+uint8_t I2c::readSR3 ()
+{
+  return I2C->SR3;
+}

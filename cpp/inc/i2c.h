@@ -18,7 +18,7 @@ class I2c
 public:
 
   enum mode {master,slave};
-  enum operation {wOperation = 0xFE, rOperation = 0xFF};
+  enum operation {wOperation = 0xFE, rOperation = 0x01};
   
 private:
   //Pin sda, scl;
