@@ -209,6 +209,47 @@ bool I2c::rReg (uint8_t address, uint8_t reg, uint8_t *data, uint8_t length)
 
 }
 
+void I2c::wByte (uint8_t address, uint8_t reg, uint8_t data)
+{
+   start ();
+  //Записываем в регистр данных адрес ведомого устройства
+  setAddress (address & wOperation);
+  
+  write (reg);
+  
+  //Отправка данных
+  write (data);
+  
+  //Посылаем СТОП-посылку
+  stop ();
+}
+
+uint8_t I2c::rByte (uint8_t address, uint8_t reg)
+{
+  start ();
+  setAddress (address&I2c::wOperation);
+  write (reg);
+  while (!(flagTxe()&&flagBtf()));
+  restart ();
+  putData (address|I2c::rOperation);
+
+  I2C->CR2 &= ~I2C_CR2_ACK;
+  while (!flagAddr());
+  disableInterrupts();
+  readSR3();
+  I2C->CR2 |= I2C_CR2_STOP;
+  enableInterrupts();
+  while (!flagRxne());
+  uint8_t data = I2C->DR;
+
+  //Ждем отправки СТОП посылки
+  while(I2C->CR2&I2C_CR2_STOP);
+  
+  //Сбрасывает бит POS, если вдруг он был установлен
+  I2C->CR2 &= ~I2C_CR2_POS;
+  return data;
+}
+
 bool I2c::flagBusy ()
 {
   return I2C->SR3 & I2C_SR3_BUSY;

@@ -8,13 +8,13 @@ Ds1307::Ds1307 (I2c *d)
   
 void Ds1307::update ()
 {
-   for (uint8_t i=0;i<7;++i) driver->rReg (address, i, &bcdData[i], 1);
+   for (uint8_t i=0;i<7;++i) bcdData[i] = driver->rByte (address, i);
 }
 
 void Ds1307::setData ()
 {
   convertDec ();
-  for (uint8_t i=0;i<7;++i) driver->wReg (address, i, &bcdData[i], 1); 
+  for (uint8_t i=0;i<7;++i) driver->wByte (address, i, bcdData[i]); 
 }
 
 void Ds1307::start ()

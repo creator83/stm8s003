@@ -3,10 +3,10 @@
 #include "i2c.h"
 
 
-#ifndef DS1307_H
-#define DS1307_H
+#ifndef DS3231_H
+#define DS3231_H
 
-namespace ds1307Registers
+namespace ds3231Registers
 {
   const uint8_t seconds = 0x00;
   const uint8_t minutes = 0x01;
@@ -15,7 +15,8 @@ namespace ds1307Registers
   const uint8_t date    = 0x04;
   const uint8_t month   = 0x05;
   const uint8_t year    = 0x06;
-  const uint8_t control = 0x07;
+  
+  const uint8_t control = 0x0E;
 }
 
 namespace valueMask
@@ -23,7 +24,7 @@ namespace valueMask
   const uint8_t seconds = 0x0F;
   const uint8_t Dseconds = 0x70;
   const uint8_t minutes = 0x0F;
-  const uint8_t Dminutes = 0xF0;
+  const uint8_t Dminutes = 0x70;
   const uint8_t hours   = 0x0F;
   const uint8_t Dhours   = 0x30;
   const uint8_t day     = 0x07;
@@ -43,7 +44,7 @@ const uint8_t address = 0xD0;
 
 
 
-class Ds1307
+class Ds3231
 {
 public:
   enum convertMode {bcdToDec, decToBcd};
@@ -56,14 +57,12 @@ private:
 
 //variables
 public:
-  Ds1307 (I2c *);
+  Ds3231 (I2c *);
   void read (uint8_t l);
   void read (uint8_t ptr, uint8_t l);
   void write (uint8_t reg,  uint8_t l);
   void update ();
   void setData ();
-  void start ();
-  void stop ();  
   void setSeconds (uint8_t);
   void setMinutes (uint8_t);
   void setHours (uint8_t);
@@ -81,8 +80,7 @@ public:
   uint8_t & getYear ();
   void convert (convertMode);
 
-  
-  
+    
 private:
   void convertBcd ();
   void convertDec ();
