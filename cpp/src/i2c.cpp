@@ -72,7 +72,6 @@ void I2c::restart ()
 
 void I2c::stop ()
 {
-  while (!(flagTxe()&&flagBtf()));
   I2C->CR2 |= I2C_CR2_STOP;
   while (!flagStop());
 }
@@ -104,7 +103,9 @@ bool I2c::wReg (uint8_t address, uint8_t reg, uint8_t *data, uint8_t l)
   while(l--){
     write (*data++);
   }
-   
+  
+  while (!(flagTxe()&&flagBtf()));
+  
   //Посылаем СТОП-посылку
   stop ();
   return true;
