@@ -49,6 +49,14 @@ void Adc::setBuffer ()
   ADC1->CR3 |= ADC1_CR3_DBUF;
 }
 
+void Adc::setTrigger (trigger t)
+{
+  TIM1->CR2 = 0x20; 
+  ADC1->CR2 &= ~ ADC1_CR2_EXTSEL;
+  ADC1->CR2 |= t;
+  ADC1->CR2 |= ADC1_CR2_EXTTRIG;
+}
+
 void Adc::start ()
 {
   ADC1->CR1 |= ADC1_CR1_ADON;

@@ -10,6 +10,7 @@ class Adc
   //variables
 public:
   enum channel {channel2=2, channel3, channel4, channel5, channel6};
+  enum trigger {timer=0, external=0x10};
   
 private:
   Pin adcPin;
@@ -25,6 +26,7 @@ public:
   void disableInterrupt ();
   void setContiniusMode ();
   void setBuffer ();
+  void setTrigger (trigger);
   void start ();
   void clearEoc ();
   void getBuffer (uint16_t *dta);
