@@ -156,7 +156,7 @@ void Ds1307::convertDec ()
   //hours
   temp = decData[ds1307Registers::hours];
   for (result =0;temp>=10;++result, temp-=10) ;
-  bcdData[ds1307Registers::hours] =  (result << 4)|0x40;
+  bcdData[ds1307Registers::hours] =  (result << 4);
   bcdData[ds1307Registers::hours] |= temp%10;
   
   //day

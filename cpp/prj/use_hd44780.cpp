@@ -45,6 +45,8 @@ INTERRUPT_HANDLER(adc, ADC1_EOC_vector)
 void setClock ();
 
 uint8_t data;
+
+
 int main()
 { 
   
@@ -60,7 +62,7 @@ int main()
   sensor.enableInterrupt ();
   //setClock ();
   //sensor.start ();
-  for (uint8_t i=0;i<7;++i) driverI2c.rReg (0xD0, i, &data,1);
+  //for (uint8_t i=0;i<7;++i) driverI2c.rReg (0xD0, i, &data,1);
   uint8_t temp,result;
   while (1)
   {
