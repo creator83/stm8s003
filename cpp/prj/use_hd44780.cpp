@@ -64,6 +64,7 @@ int main()
   //setClock ();
   //sensor.start ();
   //for (uint8_t i=0;i<7;++i) driverI2c.rReg (0xD0, i, &data,1);
+ // driverI2c.wByte (0xD0, 0x02, 0x18);
   uint8_t temp,result;
   while (1)
   {
