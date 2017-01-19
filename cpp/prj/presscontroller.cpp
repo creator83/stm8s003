@@ -8,14 +8,17 @@
 #include "buffer.h"
 #include "button.h"
 #include "adc.h"
+#include "pin.h"
 
-
+//Should comment after 1st init
+//============================
 const uint8_t highVal = 28;
 const uint8_t lowVal = 18;
 const uint8_t dryVal = 4;
 const uint8_t periodVal = 4;
+//============================
 
-uint8_t *highValEeprom, *lowValEeprom, *dryValEeprom;
+uint8_t *highValEeprom, *lowValEeprom, *dryValEeprom, *periodValEeprom;
 
 
 uint16_t adcValue [10] = {0};
@@ -56,6 +59,7 @@ Button minus (Gpio::A, 3, Button::oneAction);
 Buffer value;
 Adc sensor(Adc::channel5);
 Atimer adcTrigger (16000);
+Pin triac (Gpio::A, 1, Gpio::lowSpeed);
 
 
 struct flags
@@ -63,6 +67,8 @@ struct flags
   unsigned setLongPress : 1;
   unsigned setShortPress : 2;
   unsigned screens :2;
+  unsigned dry :1;
+  unsigned alarm : 1;
 }flag;
 
 struct position
@@ -122,41 +128,30 @@ void plusPress ();
 
 void initPosition ();
 void initDataPosition ();
+void clearCursor ();
+void setCursor ();
 
+uint16_t adcData [10];
 
 INTERRUPT_HANDLER(adc, ADC1_EOC_vector)
 {
   sensor.clearEoc ();
-  uint16_t data [10];
-  uint16_t result=0;
-  sensor.getBuffer (data);
-  for (uint8_t i=0;i<10;++i) result += data [i];
-  result<<=1;
-  value.parsDec16 (result, 5);
-  lcd.setPosition (1,0);
-  lcd.sendString (value.getElement (0)); 
-  //value.parsDec16 (*eepromPtr, 2);
-  lcd.setPosition (1,6);
-  lcd.sendString (value.getElement (3)); 
+  sensor.getBuffer (adcData);
 }
 
 INTERRUPT_HANDLER(TIM4_OVR_UIF, TIM4_OVR_UIF_vector)
 {
   static struct counters
   {
-    uint16_t lcd;
     uint16_t adc;
-    uint16_t button;    
-  }counter = {0,0,0};
+    uint16_t dry;
+    uint16_t pump;
+  }counter = {0, 0, 0};
   
   timer4.clearFlag();
-  ++counter.lcd;
   ++counter.adc;
-  ++counter.button;
-  static uint8_t prevPosition=0;
-  
 
-    
+  
   set.scanButton ();
   set.scanAction();
     
@@ -169,44 +164,69 @@ INTERRUPT_HANDLER(TIM4_OVR_UIF, TIM4_OVR_UIF_vector)
       minus.scanAction();
     }
    
-  if (counter.lcd>200)
+   if (counter.adc>300)
   {
-    if (prevPosition != screens[flag.screens]) lcd.setShiftPosition ( screens[flag.screens]);
-   
-    if (flag.setLongPress)
-    {   
-      //clearCursors ();
-      lcd.setPosition (ScreenCursor[flag.screens][flag.setShortPress]->row, ScreenCursor[flag.screens][flag.setShortPress]->coloumn);
-      lcd.data (cursor);
+    uint16_t result=0;
+    for (uint8_t i=0;i<10;++i)
+    {
+      result += adcData [i];
     }
+    currPress.value = result/50;
     //draw value
     //main screen
-    lcd.setPosition (ScreenVal[0][0]->pos.row, ScreenVal[0][0]->pos.coloumn);
-    value.parsDec16 (ScreenVal[0][0]->value, 3);
+    lcd.setPosition (currPress.pos.row, currPress.pos.coloumn);
+    value.parsDec16 (currPress.value, 3);
     lcd.sendString (value.getElement(2));
-      
-    for (uint8_t i=1;i<3;++i)
+    if (currPress.value<dryPress.value&&!flag.dry)
     {
-      for (uint8_t j=0;j<2;++j)
+      flag.dry = 1;
+      triac.clear ();
+    } 
+    
+    if (flag.dry)
+    {
+      if (currPress.value<dryPress.value&&counter.dry<(200*period.value))
       {
-        lcd.setPosition (ScreenVal[i][j]->pos.row, ScreenVal[i][j]->pos.coloumn);
-        value.parsDec16 (ScreenVal[i][j]->value, 3);
-        lcd.sendString (value.getElement(2));
+        ++counter.dry;
       }
-    }    
-  }
-   
-   if (counter.adc>100)
-  {
-    uint16_t tempAdc = 0;
-    for (uint8_t i=0;i<8;++i)
-    {
-      tempAdc += sensor.getValue();
+      else if (currPress.value<dryPress.value&&counter.dry>(200*period.value)&&!flag.alarm)
+      {
+        flag.alarm = 1;        
+      }
+      else if (currPress.value>dryPress.value) 
+      {
+        flag.dry = 0;
+      }
+      if (flag.alarm)
+      {
+        
+        if (counter.pump<70) //about 20 sec
+        {
+          counter.pump++;
+          triac.set ();
+        }
+        else 
+        {
+          triac.clear ();
+          counter.pump = 0;
+          counter.dry = 0;
+        }
+        
+      }
     }
-    currPress.value = tempAdc >> 3;
-    counter.adc = 0;
+    if (!flag.dry)
+    {
+      
+      if (currPress.value<lowPress.value)
+      {
+        triac.set ();
+      }
+      else if (currPress.value>highPress.value)
+      {
+        triac.clear ();
+      }   
+    }
   } 
-  
 }
 void timer4_init ();
 
@@ -217,6 +237,16 @@ int main()
   highValEeprom = (uint8_t*)0x004000; 
   lowValEeprom = (uint8_t*)0x004001; 
   dryValEeprom = (uint8_t*)0x004002; 
+  periodValEeprom = (uint8_t*)0x004003; 
+ 
+  //Should comment after 1st init
+  //============================
+  *highValEeprom = highVal; 
+  *lowValEeprom = lowVal; 
+  *dryValEeprom = dryVal; 
+  *periodValEeprom = periodVal; 
+  //============================
+  
   mainScreen ();
   set1Screen ();
   set2Screen ();
@@ -239,7 +269,7 @@ int main()
   sensor.enableInterrupt ();
   adcTrigger.start ();
   //sensor.start ();
-  //timer4_init ();
+  timer4_init ();
   
   while (1)
   {
@@ -264,28 +294,30 @@ void initDataPosition ()
   currPress.value = 0;
   currPress.pos.coloumn = 3;
   currPress.pos.row = 0;
-  highPress.value = highVal;
+  highPress.value = *highValEeprom;
   highPress.highLimit = 40;
   highPress.lowLimit = 20;
-  *highValEeprom = highPress.value;
   highPress.eepromPtr = highValEeprom;
   highPress.pos.coloumn = 12;
   highPress.pos.row = 0;
-  lowPress.value = lowVal;
+  lowPress.value = *lowValEeprom;
   lowPress.highLimit = 25;
   lowPress.lowLimit = 10;
-  *lowValEeprom = lowPress.value;
   lowPress.pos.coloumn = 12;
   lowPress.pos.row = 1;
-  dryPress.value = dryVal;
+  lowPress.eepromPtr = lowValEeprom;
+  dryPress.value = *dryValEeprom;
   dryPress.highLimit = 9;
   dryPress.lowLimit = 0;
-  *dryValEeprom = dryPress.value;
   dryPress.pos.coloumn = 20;
   dryPress.pos.row = 0;
-  period.value = periodVal;
+  dryPress.eepromPtr = dryValEeprom;
+  period.value = *periodValEeprom;
   period.pos.coloumn = 20;
   period.pos.row = 1;
+  period.lowLimit = 1;
+  period.highLimit = 20;
+  period.eepromPtr = periodValEeprom;
 }
 
 void mainScreen ()
@@ -312,7 +344,7 @@ void set1Screen ()
   lcd.data ('=');
 }
 
-void set2Screen ()
+void set2Screen () 
 {
   lcd.setPosition (0, 16);
   lcd.sendString ("#P=");
@@ -325,7 +357,7 @@ void longSetPress ()
   if (flag.setLongPress) 
   {
     flag.setLongPress = 0;
-    //clearCursors ();
+    clearCursor ();
   }
   else 
   {
@@ -333,7 +365,7 @@ void longSetPress ()
     {
       flag.setLongPress = 1;
       flag.setShortPress = 0;
-      //setcursor
+      setCursor ();
     }
   }
 }
@@ -344,13 +376,13 @@ void shortSetPress ()
   {
     ++flag.screens;
     if (flag.screens>2)flag.screens = 0;
+    lcd.setShiftPosition (screens [flag.screens]);
   }
   else
   {
-    //clearcursor
+    clearCursor ();
     flag.setShortPress ^= 1;
-    
-    //setcursor
+    setCursor ();
   }
 }
 
@@ -362,8 +394,13 @@ void minusPress ()
     if (ptr)
     {
       if (ptr->value>ptr->lowLimit)
-      --ptr->value;
-      *ptr->eepromPtr = ptr->value;
+      {
+        --ptr->value;
+        *ptr->eepromPtr = ptr->value;
+        lcd.setPosition (ScreenVal[flag.screens][flag.setShortPress]->pos.row, ScreenVal[flag.screens][flag.setShortPress]->pos.coloumn);
+        value.parsDec16 (ScreenVal[flag.screens][flag.setShortPress]->value, 3);
+        lcd.sendString (value.getElement(2));
+      }
     }
   }
 }
@@ -375,8 +412,13 @@ void plusPress ()
     if (ptr)
     {
       if (ptr->value<ptr->highLimit)
-      ++ptr->value;
-      *ptr->eepromPtr = ptr->value;
+      {
+        ++ptr->value;
+        *ptr->eepromPtr = ptr->value;
+        lcd.setPosition (ScreenVal[flag.screens][flag.setShortPress]->pos.row, ScreenVal[flag.screens][flag.setShortPress]->pos.coloumn);
+        value.parsDec16 (ScreenVal[flag.screens][flag.setShortPress]->value, 3);
+        lcd.sendString (value.getElement(2));
+      }
     }
   }
 }
@@ -388,4 +430,16 @@ void timer4_init ()
   enableInterrupts();
   timer4.interrupt (true);
   timer4.start ();
+}
+
+void clearCursor ()
+{
+  lcd.setPosition (ScreenCursor[flag.screens][flag.setShortPress]->row, ScreenCursor[flag.screens][flag.setShortPress]->coloumn);
+  lcd.data (' ');
+}
+
+void setCursor ()
+{
+  lcd.setPosition (ScreenCursor[flag.screens][flag.setShortPress]->row, ScreenCursor[flag.screens][flag.setShortPress]->coloumn);
+  lcd.data (cursor);
 }

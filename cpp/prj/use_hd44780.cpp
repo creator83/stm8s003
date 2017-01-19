@@ -46,7 +46,8 @@ void setClock ();
 
 uint8_t data;
 
-
+void sht30Write ();
+void sht30Read ();
 int main()
 { 
   
@@ -107,3 +108,31 @@ void setClock ()
   clock.setData ();
   clock.start ();
 }
+
+void sht30Write ()
+{
+  driverI2c.start ();
+  driverI2c.setAddress (0x44);
+  driverI2c.write (0x24);
+  driverI2c.write (0x16);
+  driverI2c.stop ();
+  //проверка уровня сигнала
+  driverI2c.start ();
+  
+  //set address NACK
+  driverI2c.putData (0x44|0x01);
+  driverI2c.readSR3();
+  driverI2c.stop ();
+  delay_ms (1);
+  driverI2c.start ();
+  driverI2c.setAddress (0x44|0x01);
+  
+  //temp MSB
+}
+
+void sht30Read ()
+{
+}
+
+
+
