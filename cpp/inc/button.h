@@ -28,6 +28,7 @@ private:
   uint8_t p;
   Pin pin_;
   static Func buttonFunc [2];
+  static Func actionFunc [2];
   uint8_t scanMode;
 //func
 public:
@@ -36,6 +37,8 @@ Button (Gpio::Port, uint8_t pin_, mode m);
   void scanButtonSingle ();
   void scanButtonDouble ();
   void scanAction ();
+  void scanActionSingle ();
+  void scanActionDouble ();
   void setShortLimit (uint16_t);
   void setLongLimit (uint16_t);
   bool & getShortPress (){return shortPress;}

@@ -2,6 +2,7 @@
 
 Func Button::buttonFunc [2] = {&Button::scanButtonSingle, &Button::scanButtonDouble};
 
+Func Button::actionFunc [2] = {&Button::scanActionSingle, &Button::scanActionDouble};
 
 Button::Button (Gpio::Port p_, uint8_t pi, mode m)
 :pin_ (p_, pi, Gpio::Floating)
@@ -81,6 +82,22 @@ void Button::scanButtonDouble ()
 
 void Button::scanAction ()
 {
+  (this->*(Button::actionFunc[scanMode]))();
+}
+
+void Button::scanActionSingle ()
+{
+  if (shortPress)
+  {
+    shortFunction();
+    do
+    shortPress = 0;
+    while (!pin_.state ());
+  }  
+}
+
+void Button::scanActionDouble ()
+{
   if (longPress) 
   {
     longFunction();
@@ -92,7 +109,7 @@ void Button::scanAction ()
   {
     shortFunction ();
     shortPress = 0;
-  }
+  }  
 }
 
 void Button::setShortLimit (uint16_t val)

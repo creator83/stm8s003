@@ -258,6 +258,9 @@ int main()
   set.setlongPressAction (longSetPress);
   set.setshortPressAction (shortSetPress);
   
+  plus.setshortPressAction (plusPress);
+  minus.setshortPressAction (minusPress);
+  
   value.setFont (Buffer::Array_char);
   initPosition ();
   initDataPosition ();
