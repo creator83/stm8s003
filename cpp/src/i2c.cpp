@@ -210,9 +210,21 @@ bool I2c::rReg (uint8_t address, uint8_t reg, uint8_t *data, uint8_t length)
 
 }
 
+void I2c::wReg1 (uint8_t address, uint8_t reg, uint8_t data)
+{
+  start ();
+  setAddress (address&0xFE);
+  while (!flagTxe());
+  putData (reg);
+  while (!flagTxe());
+  putData (data);
+  while (!(flagTxe()&&flagBtf()));
+  stop ();
+}
+
 void I2c::wByte (uint8_t address, uint8_t reg, uint8_t data)
 {
-   start ();
+  start ();
   //Записываем в регистр данных адрес ведомого устройства
   setAddress (address & wOperation);
   

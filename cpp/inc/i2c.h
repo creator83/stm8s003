@@ -44,6 +44,9 @@ public:
   bool wReg (uint8_t adress, uint8_t reg, uint8_t *data, uint8_t l);
   bool rReg (uint8_t adress, uint8_t reg, uint8_t *data, uint8_t l);
   
+  void wReg1 (uint8_t adress, uint8_t reg, uint8_t data);
+  uint8_t rReg1 (uint8_t adress, uint8_t reg);
+  
   void wByte (uint8_t adress, uint8_t reg, uint8_t data);
   uint8_t rByte (uint8_t adress, uint8_t reg);
   
