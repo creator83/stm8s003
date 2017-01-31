@@ -1,6 +1,8 @@
 #include "stm8s.h"                  // Device header
 #include "delay.h"
-#include "i2c.h"
+#include "softi2c.h"
+
+
 
 
 #ifndef SHT20_H
@@ -27,22 +29,24 @@ public:
   enum resolution {bit14, bit12, bit13, bit11};
 
 private:
-  I2c * driver;
+  SoftI2c * driver;
   uint8_t stopCommand;
   uint8_t startCommand;
   uint8_t res, uRegister;
   uint16_t temperature, hummdity;
   uint32_t temperatureCode, hummdityCode;
-  uint8_t address;
+  uint8_t address, checksum;
 //variables
 public:
-  Sht20 (I2c *);
+  Sht20 (SoftI2c *);
   void readTemperature ();
   void readHummidity  ();
   void setResolution (resolution);
   void readUserR ();
   void writeUserR  (uint8_t);
   uint8_t & getUserRegister ();
+  uint16_t & getTemperature ();
+  uint16_t & getHummidity ();
   
 private:
   void convertHummdity ();

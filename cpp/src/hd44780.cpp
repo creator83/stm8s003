@@ -79,7 +79,7 @@ void Hd44780::checkBusy ()
     e.clear();
   }
   while (state);
-  d7.setOut ();
+  d7.setOut (Gpio::PushPull);
   rw.clear();
 }
 

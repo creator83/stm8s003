@@ -20,7 +20,7 @@ public:
   Pin(Port prt, uint8_t p_, PP p, Interrupt i=Off);
   
   void setIn (PP p);
-  void setOut ();
+  void setOut (out o);
   
   void set ();
   void clear ();

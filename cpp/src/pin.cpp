@@ -47,10 +47,13 @@ void Pin::setIn (PP p)
   *(reg)(portAdr[prt]+CR1) = p << pin_;
 }
 
-void Pin::setOut ()
+void Pin::setOut (out o)
 {
   //настройка выход
   *(reg)(portAdr[prt]+DDR) |= 1 << pin_;
+  //настройка состояний Pushpull/Opendrain
+  *(reg)(portAdr[prt]+CR1) &= ~(1 << pin_);
+  *(reg)(portAdr[prt]+CR1) |= o << pin_; 
 }
 
 void Pin::set ()

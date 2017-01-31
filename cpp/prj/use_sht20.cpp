@@ -19,8 +19,8 @@
 Tact frq;
 Buffer value;
 uint8_t *eepromPtr;
-/*I2c driverI2c ;
-Sht20 temp (&driverI2c);*/
+SoftI2c driver (Gpio::B , 5, Gpio::B, 4);
+Sht20 sensor (&driver);
 
 
 //const uint8_t address = 0xD0;
@@ -34,9 +34,9 @@ int main()
   FLASH->DUKR = 0xAE;
   FLASH->DUKR = 0x56;
   eepromPtr = (uint8_t*)0x004000;
-  SoftI2c driver (Gpio::B , 5, Gpio::B, 4);
   
-  //write
+  
+  /*//write
   driver.start ();
   driver.write (0xD0&0xFE);
   driver.waiteAck ();
@@ -67,22 +67,21 @@ int main()
   driver.write (0x80|0x01);
   driver.waiteAck ();
   driver.waiteStretching ();
-  driver.read ();
+  driver.readwStretching ();
   driver.generateAck ();
   driver.read ();
   driver.generateAck ();
   driver.read ();
   driver.generateNack ();
-  driver.stop ();
+  driver.stop ();*/
   
-  
-  
+   
   
   while (1)
   {
-    
+    sensor.getHummidity ();
+    sensor.getTemperature ();
     delay_ms (100);
-
   }
 }
 /*

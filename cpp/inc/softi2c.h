@@ -33,6 +33,7 @@ public:
   void stop ();
   void write (uint8_t );
   uint8_t read ();
+  uint8_t readwStretching ();
   bool waiteAck ();
   void generateAck ();
   void generateNack ();
