@@ -19,10 +19,6 @@ namespace sht20commands
 
 
 
-const uint8_t address = 0x80;
-
-
-
 
 
 class Sht20
@@ -37,6 +33,7 @@ private:
   uint8_t res, uRegister;
   uint16_t temperature, hummdity;
   uint32_t temperatureCode, hummdityCode;
+  uint8_t address;
 //variables
 public:
   Sht20 (I2c *);

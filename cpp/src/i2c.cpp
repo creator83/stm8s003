@@ -56,7 +56,7 @@ uint8_t I2c::getData ()
 void I2c::start ()
 {
   //Ждем освобождения шины I2C
-//  delay_ms (10);
+  //delay_ms (10);
   while (flagBusy());   
   //Генерация СТАРТ-посылки
   I2C->CR2 |= I2C_CR2_START;

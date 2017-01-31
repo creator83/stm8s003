@@ -13,14 +13,16 @@
 #include "adc.h"
 #include "i2c.h"
 #include "ds1307.h"
+#include "sht20.h"
 
 Tact frq;
 Hd44780 lcd;
-Adc sensor(Adc::channel5);
+Adc sensor(Adc::channel2);
 Buffer value;
 uint8_t *eepromPtr;
 I2c driverI2c ;
-Ds1307 clock (&driverI2c);
+Sht20 temp (&driverI2c);
+
 
 //const uint8_t address = 0xD0;
 
@@ -50,7 +52,7 @@ void sht30Write ();
 void sht30Read ();
 int main()
 { 
-  
+
   value.setFont (Buffer::Array_char);
   lcd.setPosition (0,0);
   lcd.sendString ("CLOCK");
@@ -58,17 +60,18 @@ int main()
   FLASH->DUKR = 0x56;
   eepromPtr = (uint8_t*)0x004000;
   //*eepromPtr = 50;
-  sensor.setContiniusMode ();
+  /*sensor.setContiniusMode ();
   sensor.setBuffer ();
-  sensor.enableInterrupt ();
+  sensor.enableInterrupt ();*/
   //setClock ();
   //sensor.start ();
   //for (uint8_t i=0;i<7;++i) driverI2c.rReg (0xD0, i, &data,1);
  // driverI2c.wByte (0xD0, 0x02, 0x18);
-  uint8_t temp,result;
+  //uint8_t temp,result;
   while (1)
   {
-    clock.update ();
+    temp.readTemperature ();
+   /* clock.update ();
     temp = clock.getHours ();
     result = (temp&valueMask::Dhours)>> 4;
     lcd.setPosition (1,0);
@@ -92,10 +95,10 @@ int main()
     result = temp&valueMask::seconds;
     lcd.data (Buffer::Array_char [result]);
     
-    delay_ms (100);
+    delay_ms (100);*/
   }
 }
-
+/*
 void setClock ()
 {
   clock.stop ();
@@ -108,7 +111,7 @@ void setClock ()
   clock.setYear (17);
   clock.setData ();
   clock.start ();
-}
+}*/
 
 void sht30Write ()
 {

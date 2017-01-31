@@ -13,41 +13,41 @@ namespace hd44780Def
 #ifdef bit8
   //D0
   const Gpio::Port d0port = Gpio::C;
-  const uint8_t d0pin = 3;
+  const uint8_t d0pin = 6;
   //D1
-  const Gpio::Port d1port = Gpio::C;
-  const uint8_t d1pin = 4;
+  const Gpio::Port d1port = Gpio::A;
+  const uint8_t d1pin = 1;
   //D2
   const Gpio::Port d2port = Gpio::C;
-  const uint8_t d2pin = 5;
+  const uint8_t d2pin = 7;
   //D3
-  const Gpio::Port d3port = Gpio::C;
+  const Gpio::Port d3port = Gpio::D;
   const uint8_t d3pin = 6;
   
 #endif
   
   
   //D4
-  const Gpio::Port d4port = Gpio::C;
-  const uint8_t d4pin = 7;
+  const Gpio::Port d4port = Gpio::D;
+  const uint8_t d4pin = 2;
   //D5
-  const Gpio::Port d5port = Gpio::A;
-  const uint8_t d5pin = 1;
+  const Gpio::Port d5port = Gpio::D;
+  const uint8_t d5pin = 5;
   //D6
-  const Gpio::Port d6port = Gpio::A;
-  const uint8_t d6pin = 2;
+  const Gpio::Port d6port = Gpio::D;
+  const uint8_t d6pin = 3;
   //D7
-  const Gpio::Port d7port = Gpio::A;
-  const uint8_t d7pin = 3;
+  const Gpio::Port d7port = Gpio::D;
+  const uint8_t d7pin = 4;
   //E
-  const Gpio::Port eport = Gpio::D;
+  const Gpio::Port eport = Gpio::A;
   const uint8_t epin = 2;
   //RS
-  const Gpio::Port rsport = Gpio::D;
-  const uint8_t rspin = 4;
+  const Gpio::Port rsport = Gpio::A;
+  const uint8_t rspin = 3;
   //RW
-  const Gpio::Port rwport = Gpio::D;
-  const uint8_t rwpin = 3;
+  const Gpio::Port rwport = Gpio::C;
+  const uint8_t rwpin = 5;
 }
 
 
