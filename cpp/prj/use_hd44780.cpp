@@ -14,14 +14,15 @@
 #include "i2c.h"
 #include "ds1307.h"
 #include "sht20.h"
+#include "softi2c.h"
 
 Tact frq;
 Hd44780 lcd;
 Adc sensor(Adc::channel2);
 Buffer value;
 uint8_t *eepromPtr;
-I2c driverI2c ;
-Sht20 temp (&driverI2c);
+/*I2c driverI2c ;
+Sht20 temp (&driverI2c);*/
 
 
 //const uint8_t address = 0xD0;
@@ -52,13 +53,14 @@ void sht30Write ();
 void sht30Read ();
 int main()
 { 
-
+  softi2c driver (Gpio::B, 5, Gpio::B, 4);
   value.setFont (Buffer::Array_char);
   lcd.setPosition (0,0);
   lcd.sendString ("CLOCK");
   FLASH->DUKR = 0xAE;
   FLASH->DUKR = 0x56;
   eepromPtr = (uint8_t*)0x004000;
+
   //*eepromPtr = 50;
   /*sensor.setContiniusMode ();
   sensor.setBuffer ();
@@ -70,8 +72,8 @@ int main()
   //uint8_t temp,result;
   while (1)
   {
-    temp.readTemperature ();
-   /* clock.update ();
+    /*temp.readTemperature ();
+    clock.update ();
     temp = clock.getHours ();
     result = (temp&valueMask::Dhours)>> 4;
     lcd.setPosition (1,0);

@@ -14,17 +14,18 @@
 #include "i2c.h"
 #include "ds1307.h"
 #include "sht20.h"
+#include "softi2c.h"
 
 Tact frq;
 Buffer value;
 uint8_t *eepromPtr;
-I2c driverI2c ;
-Sht20 temp (&driverI2c);
+/*I2c driverI2c ;
+Sht20 temp (&driverI2c);*/
 
 
 //const uint8_t address = 0xD0;
 
-
+void write (uint8_t add, uint8_t reg, uint8_t data);
 int main()
 { 
 
@@ -33,7 +34,50 @@ int main()
   FLASH->DUKR = 0xAE;
   FLASH->DUKR = 0x56;
   eepromPtr = (uint8_t*)0x004000;
-  temp.readTemperature ();
+  SoftI2c driver (Gpio::B , 5, Gpio::B, 4);
+  
+  //write
+  driver.start ();
+  driver.write (0xD0&0xFE);
+  driver.waiteAck ();
+  driver.write (0x02);
+  driver.waiteAck ();
+  driver.stop ();
+  
+  //read
+  driver.start ();
+  driver.write (0xD0&0xFE);
+  driver.waiteAck ();
+  driver.write (0x02);
+  driver.waiteAck ();
+  driver.restart ();
+  driver.write (0xD0|0x01);
+  driver.waiteAck ();
+  driver.read ();  
+  driver.generateNack ();
+  driver.stop ();
+  
+  //SHT20
+  driver.start ();
+  driver.write (0x80&0xFE);
+  driver.waiteAck ();
+  driver.write (0xE3);
+  driver.waiteAck ();
+  driver.restart ();
+  driver.write (0x80|0x01);
+  driver.waiteAck ();
+  driver.waiteStretching ();
+  driver.read ();
+  driver.generateAck ();
+  driver.read ();
+  driver.generateAck ();
+  driver.read ();
+  driver.generateNack ();
+  driver.stop ();
+  
+  
+  
+  
   while (1)
   {
     
@@ -58,7 +102,7 @@ void setClock ()
 
 void sht30Write ()
 {
-  driverI2c.start ();
+  /*driverI2c.start ();
   driverI2c.setAddress (0x44);
   driverI2c.write (0x24);
   driverI2c.write (0x16);
@@ -72,7 +116,7 @@ void sht30Write ()
   driverI2c.stop ();
   delay_ms (1);
   driverI2c.start ();
-  driverI2c.setAddress (0x44|0x01);
+  driverI2c.setAddress (0x44|0x01);*/
   
   //temp MSB
 }
