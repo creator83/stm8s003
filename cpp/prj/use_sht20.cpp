@@ -27,19 +27,20 @@ void initAwu ();
 
 int main()
 { 
-  Nrf24l01 ();
-  CLK->PCKENR1 = 1 << 1;
-  CLK->PCKENR2 = 1 << 2;
-  //AWU->CSR
-  halt ();
+  Sht20 sensor (&driver);
+ // Nrf24l01 ();
+//  CLK->PCKENR1 = 1 << 1;
+ // CLK->PCKENR2 = 1 << 2;
+  /*initAwu ();
+  halt ();*/
   while (1)
   {
-    CLK->PCKENR1 &= ~ 1 << 5;
+   // CLK->PCKENR1 &= ~ 1 << 5;
     frq.init_lsi();
     sensor.getHummidity ();
     sensor.getTemperature ();
-    CLK->PCKENR1 = 1 << 5;
-    frq.init_hsi(2);
+  //  CLK->PCKENR1 = 1 << 5;
+//    frq.init_hsi(2);
     //send data nrf24l01
     
   }
@@ -48,7 +49,8 @@ int main()
 void initAwu ()
 {
   AWU->CSR &= ~ AWU_CSR_AWUEN;
-  AWU->TBR = 8;
+  //AWU->TBR = 8;
+  AWU->TBR = 0x0F;
   AWU->APR = 60;
   AWU->CSR |= AWU_CSR_AWUEN;
 }

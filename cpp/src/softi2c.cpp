@@ -26,10 +26,11 @@ void SoftI2c::start ()
   scl.clear ();
   delay_us (1);*/
   GPIOB->DDR |= 1 << SDA;
-  GPIOB->ODR |= 1 << SDA;
+  GPIOB->ODR |= 1 << SDA;  
   GPIOB->ODR |= 1 << SCL;
   nop ();
   GPIOB->ODR &=~ 1 << SDA;
+  nop ();
   GPIOB->ODR &=~ 1 << SCL;
   nop ();
   
