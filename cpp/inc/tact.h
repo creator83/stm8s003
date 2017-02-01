@@ -19,12 +19,10 @@ public:
   Tact ();
   Tact (src_tact s);
   static uint8_t & get_frq (){return f_cpu;};
-  void init_hsi ();    
-private:
-  void init_pll (uint8_t i);
-  void init_pll ();  
+  void init_hsi (uint8_t mdiv=0, uint8_t cdiv=0);
   void init_hse ();
-  void Set_frq (uint8_t frq);
+  void init_lsi ();
+
 };
 
 #endif

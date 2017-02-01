@@ -8,6 +8,7 @@ Sht20::Sht20 (SoftI2c *d)
   driver = d;
 }
 
+
 void Sht20::readTemperature ()
 {
   driver->start ();

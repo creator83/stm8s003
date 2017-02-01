@@ -16,13 +16,14 @@ Tact::Tact (src_tact s)
   CLK->CSSR |= CLK_CSSR_CSSEN + CLK_CSSR_CSSDIE;
 }
 
-void Tact::init_hsi ()
+void Tact::init_hsi (uint8_t mdiv, uint8_t cdiv)
 {
   CLK->ICKR = 0;
   CLK->ICKR |= CLK_ICKR_HSIEN;  
   CLK->ECKR = 0;
   while (!(CLK->ICKR&CLK_ICKR_HSIRDY));
   CLK->CKDIVR = 0;
+  CLK->CKDIVR |= (mdiv << 3)|cdiv;
   CLK->CCOR = 0;
   CLK->HSITRIMR = 0;
   CLK->SWIMCCR = 0;
@@ -34,10 +35,20 @@ void Tact::init_hsi ()
 
 void Tact::init_hse ()
 {
-  CLK->ECKR |= CLK_ECKR_HSEEN;
+  CLK->ICKR |= CLK_ECKR_HSEEN;
   CLK->SWCR |= CLK_SWCR_SWEN;
   while (!(CLK->ECKR&CLK_ECKR_HSERDY));
   CLK->CKDIVR = 0;
   CLK->SWR = 0xB4;
   while (!(CLK->SWCR&CLK_SWCR_SWIF));
+}
+
+void Tact::init_lsi ()
+{
+  
+  CLK->ICKR |= CLK_ICKR_LSIEN;
+  while (!(CLK->ICKR&CLK_ICKR_LSIRDY));
+  CLK->CKDIVR = 0;
+  CLK->SWR = 0xD2;
+  while (!(CLK->SWCR&CLK_SWCR_SWIF));  
 }

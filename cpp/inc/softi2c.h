@@ -19,15 +19,17 @@ public:
   enum operation {wOperation = 0xFE, rOperation = 0x01};
   
 private:
-  Pin sda, scl;
+  //Pin sda, scl;
   static init init_mode [2];
   enum speed {standart, fast};
   uint8_t speed_mode;
+  enum pins {SCL=4, SDA};
  //function
 public:
 
   SoftI2c(Gpio::Port, uint8_t sda_, Gpio::Port, uint8_t scl_);
-
+  SoftI2c ();
+  
   void start ();
   void restart ();
   void stop ();
