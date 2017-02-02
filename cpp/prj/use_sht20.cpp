@@ -19,8 +19,8 @@
 Tact frq;
 Buffer value;
 uint8_t *eepromPtr;
-//SoftI2c driver (Gpio::B , 5, Gpio::B, 4);
-SoftI2c driver;
+SoftI2c driver (Gpio::B , 5, Gpio::B, 4);
+//SoftI2c driver;
 Sht20 sensor (&driver);
 
 void initAwu ();
@@ -41,8 +41,7 @@ int main()
     sensor.getTemperature ();
   //  CLK->PCKENR1 = 1 << 5;
 //    frq.init_hsi(2);
-    //send data nrf24l01
-    
+    //send data nrf24l01    
   }
 }
 
