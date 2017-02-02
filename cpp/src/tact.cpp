@@ -58,14 +58,14 @@ void Tact::init_lsi ()
   CLK->ICKR |= CLK_ICKR_LSIEN;
   while (!(CLK->ICKR&CLK_ICKR_LSIRDY));
   
- CLK->SWCR |= CLK_SWCR_SWEN;
+  CLK->SWCR |= CLK_SWCR_SWEN;
   CLK->SWR = 0xD2;
   while((CLK->SWCR & CLK_SWCR_SWBSY) != 0 );
   while (!(CLK->SWCR&CLK_SWCR_SWIF));
   CLK->SWCR &=~ CLK_SWCR_SWIF;
    
   
-/*   CLK->SWCR &=~ CLK_SWCR_SWIF;
+ /* CLK->SWCR &=~ CLK_SWCR_SWIF;
   CLK->SWR = 0xD2;
   while (CLK->SWCR&CLK_SWCR_SWBSY);
   while (!(CLK->SWCR&CLK_SWCR_SWIF));
