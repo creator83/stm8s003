@@ -22,6 +22,7 @@ public:
   void init_hsi (uint8_t mdiv=0, uint8_t cdiv=0);
   void init_hse ();
   void init_lsi ();
+  void setHsiFrq (uint8_t mdiv=0, uint8_t cdiv=0);
 
 };
 

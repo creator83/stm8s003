@@ -16,7 +16,7 @@ Tact::Tact (src_tact s)
   if (s) init_hse ();
   else init_hsi ();
   f_cpu = 16;
-  CLK->CSSR |= CLK_CSSR_CSSEN + CLK_CSSR_CSSDIE;
+  CLK->CSSR = 0;
 }
 
 void Tact::init_hsi (uint8_t mdiv, uint8_t cdiv)
@@ -57,20 +57,42 @@ void Tact::init_lsi ()
   
   CLK->ICKR |= CLK_ICKR_LSIEN;
   while (!(CLK->ICKR&CLK_ICKR_LSIRDY));
+  
+ CLK->SWCR |= CLK_SWCR_SWEN;
+  CLK->SWR = 0xD2;
+  while((CLK->SWCR & CLK_SWCR_SWBSY) != 0 );
+  while (!(CLK->SWCR&CLK_SWCR_SWIF));
   CLK->SWCR &=~ CLK_SWCR_SWIF;
+   
+  
+/*   CLK->SWCR &=~ CLK_SWCR_SWIF;
   CLK->SWR = 0xD2;
   while (CLK->SWCR&CLK_SWCR_SWBSY);
   while (!(CLK->SWCR&CLK_SWCR_SWIF));
   CLK->SWCR &=~ CLK_SWCR_SWIF;
   CLK->SWCR |= CLK_SWCR_SWEN;
-  while (CLK->SWCR&CLK_SWCR_SWBSY);
+  while (CLK->SWCR&CLK_SWCR_SWBSY);*/
   CLK->CKDIVR = 0;
 
   //CCO
+  /*
   CLK->CCOR = 0;
   CLK->CCOR |= 0x0C << 1;
   CLK->CCOR |= CLK_CCOR_CCOEN;
-  while (!CLK->CCOR&CLK_CCOR_CCORDY);
+  while (!CLK->CCOR&CLK_CCOR_CCORDY);*/
+  
+  CLK->ICKR &= ~ CLK_ICKR_HSIEN;
   //CLK->ICKR |= CLK_ICKR_SWUAH;
   //FLASH->CR1 |=   FLASH_CR1_AHALT;
+}
+
+void Tact::setHsiFrq (uint8_t mdiv, uint8_t cdiv)
+{
+  CLK->CKDIVR = 0;
+  CLK->CKDIVR |= (mdiv << 3)|cdiv;
+  //CCO 
+  CLK->CCOR = 0;
+  CLK->CCOR |= 0x07 << 1;
+  CLK->CCOR |= CLK_CCOR_CCOEN;  
+  while (!CLK->CCOR&CLK_CCOR_CCORDY);
 }

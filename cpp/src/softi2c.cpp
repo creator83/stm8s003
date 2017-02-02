@@ -12,7 +12,7 @@ SoftI2c::SoftI2c(Gpio::Port pSda, uint8_t sda_, Gpio::Port pScl, uint8_t scl_)
 SoftI2c::SoftI2c ()
 {
   GPIOB->DDR |= 1 << SDA| 1 << SCL;
-  GPIOB->CR2 |= 1 << SDA| 1 << SCL;
+  GPIOB->CR2 |= (1 << SDA| 1 << SCL);
   GPIOB->CR1 &= ~(1 << SDA| 1 << SCL);
 }
 #endif
@@ -33,9 +33,9 @@ void SoftI2c::start ()
   GPIOB->ODR |= 1 << SDA;  
   GPIOB->ODR |= 1 << SCL;
   nop ();
-  GPIOB->ODR &=~ 1 << SDA;
+  GPIOB->ODR &=~ (1 << SDA);
   nop ();
-  GPIOB->ODR &=~ 1 << SCL;
+  GPIOB->ODR &=~ (1 << SCL);
   nop ();
 #endif
 }
@@ -56,8 +56,9 @@ void SoftI2c::restart ()
   GPIOB->ODR |= 1 << SCL;
   GPIOB->ODR |= 1 << SDA;
   nop ();
-  GPIOB->ODR &=~ 1 << SDA;
-  GPIOB->ODR &=~ 1 << SCL;
+  GPIOB->ODR &=~ (1 << SDA);
+  nop ();
+  GPIOB->ODR &=~ (1 << SCL);
   nop ();
 #endif
 }
@@ -72,10 +73,11 @@ void SoftI2c::stop ()
   sda.set ();
 #else
   GPIOB->DDR |= 1 << SDA;
-  GPIOB->ODR &=~ 1 << SDA;
-  GPIOB->ODR &=~ 1 << SCL;
+  GPIOB->ODR &=~ (1 << SDA);
+  GPIOB->ODR &=~ (1 << SCL);
   nop ();
   GPIOB->ODR |= 1 << SCL;
+  nop ();
   GPIOB->ODR |= 1 << SDA;
 #endif
 }
@@ -91,19 +93,19 @@ void SoftI2c::write (uint8_t addr)
     if (addr&(1 <<(7-i))) sda.set();
     else sda.clear ();
     scl.set ();
-    //delay_us (1);
     scl.clear ();
   }
 #else
   GPIOB->DDR |= 1 << SDA;
-  GPIOB->ODR &=~ 1 << SDA;
-  GPIOB->ODR &=~ 1 << SCL;
+  GPIOB->ODR &=~ (1 << SDA);
+  GPIOB->ODR &=~ (1 << SCL);
   for (uint8_t i=0;i<8;++i)
   {
     if (addr&(1 <<(7-i))) GPIOB->ODR |= 1 << SDA;
-    else GPIOB->ODR &=~ 1 << SDA;;
+    else GPIOB->ODR &=~ (1 << SDA);
     GPIOB->ODR |= 1 << SCL;
-    GPIOB->ODR &=~ 1 << SCL;
+    nop ();
+    GPIOB->ODR &=~ (1 << SCL);
   }
 #endif
 }
@@ -128,7 +130,7 @@ uint8_t SoftI2c::read ()
   {
     GPIOB->ODR |= 1 << SCL;
     if (GPIOB->IDR&(1 << SDA)) data |= 1 << (7-i);
-    GPIOB->ODR &= ~ 1 << SCL;
+    GPIOB->ODR &= ~ (1 << SCL);
   }
   return data;
 #endif  
@@ -149,7 +151,7 @@ uint8_t SoftI2c::readwStretching ()
   }
   return data;
 #else    
-  GPIOB->DDR &= ~ 1 << SDA;
+  GPIOB->DDR &= ~ (1 << SDA);
   uint8_t data = 0;
   if (GPIOB->IDR&(1 << SDA))data |= 1 << 7;
   GPIOB->DDR |= 1 << SCL;
@@ -157,7 +159,7 @@ uint8_t SoftI2c::readwStretching ()
   {
     GPIOB->ODR |= 1 << SCL;
     if (GPIOB->IDR&(1 << SDA)) data |= 1 << (7-i);
-    GPIOB->ODR &=~ 1 << SCL;
+    GPIOB->ODR &=~ (1 << SCL);
   }
   return data;
 #endif  
@@ -179,17 +181,17 @@ bool SoftI2c::waiteAck ()
     return false;
   }
 #else  
-  GPIOB->DDR &= ~ 1 << SDA;
+  GPIOB->DDR &= ~ (1 << SDA);
   GPIOB->ODR |= 1 << SCL;
   nop ();
   if (GPIOB->IDR&(1 << SDA)) 
   {
-    GPIOB->ODR &= ~ 1 << SCL;
+    GPIOB->ODR &= ~ (1 << SCL);
     return true;  
   }
   else
   {
-    GPIOB->ODR &= ~ 1 << SCL;
+    GPIOB->ODR &= ~ (1 << SCL);
     return false;
   }
 #endif  
@@ -204,9 +206,9 @@ void SoftI2c::generateAck ()
   scl.clear ();
 #else 
   GPIOB->DDR |= 1 << SDA;
-  GPIOB->ODR &= ~ 1 << SDA;
+  GPIOB->ODR &= ~ (1 << SDA);
   GPIOB->ODR |= 1 << SCL;
-  GPIOB->ODR &=~ 1 << SCL;
+  GPIOB->ODR &=~ (1 << SCL);
 #endif 
 }
 
@@ -222,7 +224,7 @@ void SoftI2c::generateNack ()
   GPIOB->DDR |= 1 << SDA;
   GPIOB->ODR |= 1 << SDA;
   GPIOB->ODR |= 1 << SCL;
-  GPIOB->ODR &=~ 1 << SCL;
+  GPIOB->ODR &=~ (1 << SCL);
 #endif  
 }
 
@@ -232,7 +234,7 @@ void SoftI2c::waiteStretching ()
   scl.setIn (Gpio::Floating);
   while (scl.state () == 0);
 #else  
-  GPIOB->DDR &=~ 1 << SCL;
+  GPIOB->DDR &=~ (1 << SCL);
   while ((GPIOB->IDR&(1 << SCL))==0);
 #endif 
 }

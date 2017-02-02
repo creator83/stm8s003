@@ -29,18 +29,21 @@ int main()
 { 
   Sht20 sensor (&driver);
  // Nrf24l01 ();
-//  CLK->PCKENR1 = 1 << 1;
- // CLK->PCKENR2 = 1 << 2;
+ CLK->PCKENR1 = 1 << 1;
+ CLK->PCKENR2 = 1 << 2;
+  
+  frq.init_lsi();
   /*initAwu ();
   halt ();*/
+ //frq.setHsiFrq(3);
   while (1)
   {
    // CLK->PCKENR1 &= ~ 1 << 5;
-    frq.init_lsi();
+   
     sensor.getHummidity ();
     sensor.getTemperature ();
   //  CLK->PCKENR1 = 1 << 5;
-//    frq.init_hsi(2);
+//    
     //send data nrf24l01    
   }
 }
