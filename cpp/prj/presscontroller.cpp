@@ -53,13 +53,13 @@ typedef void (*PtrF)();
 Tact frq;
 Hd44780 lcd;
 Btimer timer4;
-Button set (Gpio::A, 5, Button::twoAction);
-Button plus (Gpio::A, 4, Button::oneAction);
-Button minus (Gpio::A, 3, Button::oneAction);
+Button set (Gpio::C, 3, Button::twoAction);
+Button plus (Gpio::B, 5, Button::oneAction);
+Button minus (Gpio::B, 4, Button::oneAction);
 Buffer value;
-Adc sensor(Adc::channel5);
+Adc sensor(Adc::channel2);
 Atimer adcTrigger (16000);
-Pin triac (Gpio::A, 1, Gpio::lowSpeed);
+Pin triac (Gpio::D, 1, Gpio::lowSpeed);
 
 
 struct flags
@@ -266,11 +266,11 @@ int main()
   initDataPosition ();
   //sensor.setContiniusMode ();
   
-  adcTrigger.setArr (100);
+  /*adcTrigger.setArr (100);
   sensor.setBuffer ();
   sensor.setTrigger (Adc::timer);
   sensor.enableInterrupt ();
-  adcTrigger.start ();
+  adcTrigger.start ();*/
   //sensor.start ();
   timer4_init ();
   
@@ -296,7 +296,7 @@ void initDataPosition ()
 {
   currPress.value = 0;
   currPress.pos.coloumn = 3;
-  currPress.pos.row = 0;
+  currPress.pos.row = 1;
   highPress.value = *highValEeprom;
   highPress.highLimit = 40;
   highPress.lowLimit = 20;
