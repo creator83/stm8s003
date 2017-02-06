@@ -12,10 +12,10 @@
 
 //Should comment after 1st init
 //============================
-const uint8_t highVal = 28;
+/*const uint8_t highVal = 28;
 const uint8_t lowVal = 18;
 const uint8_t dryVal = 4;
-const uint8_t periodVal = 4;
+const uint8_t periodVal = 4;*/
 //============================
 
 uint8_t *highValEeprom, *lowValEeprom, *dryValEeprom, *periodValEeprom;
@@ -177,7 +177,7 @@ INTERRUPT_HANDLER(TIM4_OVR_UIF, TIM4_OVR_UIF_vector)
     lcd.setPosition (currPress.pos.row, currPress.pos.coloumn);
     value.parsDec16 (currPress.value, 3);
     lcd.sendString (value.getElement(2));
-    if (currPress.value<dryPress.value&&!flag.dry)
+   /* if (currPress.value<dryPress.value&&!flag.dry)
     {
       flag.dry = 1;
       triac.clear ();
@@ -225,7 +225,7 @@ INTERRUPT_HANDLER(TIM4_OVR_UIF, TIM4_OVR_UIF_vector)
       {
         triac.clear ();
       }   
-    }
+    }*/
   } 
 }
 void timer4_init ();
@@ -241,17 +241,17 @@ int main()
  
   //Should comment after 1st init
   //============================
-  *highValEeprom = highVal; 
+ /* *highValEeprom = highVal; 
   *lowValEeprom = lowVal; 
   *dryValEeprom = dryVal; 
-  *periodValEeprom = periodVal; 
+  *periodValEeprom = periodVal; */
   //============================
   
   mainScreen ();
   set1Screen ();
   set2Screen ();
-  set.setLongLimit (100);
-  set.setShortLimit (3); 
+  set.setLongLimit (1000);
+  set.setShortLimit (10); 
   plus.setShortLimit (3);
   minus.setShortLimit (3);
   
@@ -349,9 +349,9 @@ void set1Screen ()
 
 void set2Screen () 
 {
-  lcd.setPosition (0, 16);
+  lcd.setPosition (0, 17);
   lcd.sendString ("#P=");
-  lcd.setPosition (1, 17);
+  lcd.setPosition (1, 18);
   lcd.sendString ("T=");
 }
 
@@ -380,6 +380,15 @@ void shortSetPress ()
     ++flag.screens;
     if (flag.screens>2)flag.screens = 0;
     lcd.setShiftPosition (screens [flag.screens]);
+    if (flag.screens)
+    {
+      for (uint8_t i=0;i<2;++i)
+      {
+        lcd.setPosition (ScreenVal[flag.screens][i]->pos.row, ScreenVal[flag.screens][flag.setShortPress]->pos.coloumn);
+        value.parsDec16 (ScreenVal[flag.screens][i]->value, 3);
+        lcd.sendString (value.getElement(2));
+      }
+    }
   }
   else
   {
@@ -388,6 +397,7 @@ void shortSetPress ()
     setCursor ();
   }
 }
+
 
 void minusPress ()
 {
@@ -418,10 +428,11 @@ void plusPress ()
       {
         ++ptr->value;
         *ptr->eepromPtr = ptr->value;
-        lcd.setPosition (ScreenVal[flag.screens][flag.setShortPress]->pos.row, ScreenVal[flag.screens][flag.setShortPress]->pos.coloumn);
-        value.parsDec16 (ScreenVal[flag.screens][flag.setShortPress]->value, 3);
-        lcd.sendString (value.getElement(2));
+        
       }
+      lcd.setPosition (ScreenVal[flag.screens][flag.setShortPress]->pos.row, ScreenVal[flag.screens][flag.setShortPress]->pos.coloumn);
+      value.parsDec16 (ScreenVal[flag.screens][flag.setShortPress]->value, 3);
+      lcd.sendString (value.getElement(2));
     }
   }
 }
