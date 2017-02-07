@@ -21,8 +21,6 @@ const uint8_t periodVal = 4;*/
 uint8_t *highValEeprom, *lowValEeprom, *dryValEeprom, *periodValEeprom;
 
 
-uint16_t adcValue [10] = {0};
-
 const char lowChar[8] =
 { 
 0x04,
@@ -135,22 +133,69 @@ uint16_t adcData [10];
 
 INTERRUPT_HANDLER(adc, ADC1_EOC_vector)
 {
+  static uint8_t i=0;
+  uint16_t result=0;
+  static uint16_t dryCounter = 0;
   sensor.clearEoc ();
   sensor.getBuffer (adcData);
+  for (uint8_t i=0;i<10;++i)
+  {
+    result += adcData[i];
+  }
+  currPress.value = result/50;
+  ++i;
+  //draw value
+  //main screen
+  if (i>2)
+  {
+    lcd.setPosition (currPress.pos.row, currPress.pos.coloumn);
+    value.parsDec16 (currPress.value, 2);
+    lcd.sendString (1, value.getElement(3));
+    lcd.data ('.');
+    lcd.sendString (1, value.getElement(4));
+  }
+  //включение и выключение по верхнему и нижнему уровней
+  if (!flag.dry)
+  {
+    if (currPress.value<lowPress.value)
+    {
+      triac.set ();
+    }
+    else if (currPress.value>highPress.value)
+    {
+      triac.clear ();
+    }      
+  }
+  //определение сухого хода
+  if (currPress.value<dryPress.value&&!flag.dry)
+  {
+    flag.dry = 1;
+    triac.clear ();
+  } 
+  if (currPress.value>dryPress.value) flag.dry = 0;
+  
+  //работа сухого хода
+  if (flag.dry) 
+  {
+    ++dryCounter;
+    if (dryCounter>(period.value*600)&&!flag.alarm)
+    {
+      triac.set ();
+      flag.alarm = 1;
+      dryCounter = 0;
+    }
+    else if (dryCounter>200&&flag.alarm)
+    {
+      triac.clear ();
+      flag.alarm = 0;
+      dryCounter = 0;
+    }
+  }
 }
 
 INTERRUPT_HANDLER(TIM4_OVR_UIF, TIM4_OVR_UIF_vector)
 {
-  static struct counters
-  {
-    uint16_t adc;
-    uint16_t dry;
-    uint16_t pump;
-  }counter = {0, 0, 0};
-  
   timer4.clearFlag();
-  ++counter.adc;
-
   
   set.scanButton ();
   set.scanAction();
@@ -162,72 +207,9 @@ INTERRUPT_HANDLER(TIM4_OVR_UIF, TIM4_OVR_UIF_vector)
       minus.scanButton ();
       plus.scanAction();
       minus.scanAction();
-    }
-   
-   if (counter.adc>300)
-  {
-    uint16_t result=0;
-    for (uint8_t i=0;i<10;++i)
-    {
-      result += adcData [i];
-    }
-    currPress.value = result/50;
-    //draw value
-    //main screen
-    lcd.setPosition (currPress.pos.row, currPress.pos.coloumn);
-    value.parsDec16 (currPress.value, 3);
-    lcd.sendString (value.getElement(2));
-   /* if (currPress.value<dryPress.value&&!flag.dry)
-    {
-      flag.dry = 1;
-      triac.clear ();
-    } 
-    
-    if (flag.dry)
-    {
-      if (currPress.value<dryPress.value&&counter.dry<(200*period.value))
-      {
-        ++counter.dry;
-      }
-      else if (currPress.value<dryPress.value&&counter.dry>(200*period.value)&&!flag.alarm)
-      {
-        flag.alarm = 1;        
-      }
-      else if (currPress.value>dryPress.value) 
-      {
-        flag.dry = 0;
-      }
-      if (flag.alarm)
-      {
-        
-        if (counter.pump<70) //about 20 sec
-        {
-          counter.pump++;
-          triac.set ();
-        }
-        else 
-        {
-          triac.clear ();
-          counter.pump = 0;
-          counter.dry = 0;
-        }
-        
-      }
-    }
-    if (!flag.dry)
-    {
-      
-      if (currPress.value<lowPress.value)
-      {
-        triac.set ();
-      }
-      else if (currPress.value>highPress.value)
-      {
-        triac.clear ();
-      }   
-    }*/
-  } 
+    }  
 }
+
 void timer4_init ();
 
 int main()
@@ -266,11 +248,11 @@ int main()
   initDataPosition ();
   //sensor.setContiniusMode ();
   
-  /*adcTrigger.setArr (100);
+  adcTrigger.setArr (100);
   sensor.setBuffer ();
   sensor.setTrigger (Adc::timer);
   sensor.enableInterrupt ();
-  adcTrigger.start ();*/
+  adcTrigger.start ();
   //sensor.start ();
   timer4_init ();
   
@@ -381,12 +363,28 @@ void shortSetPress ()
     if (flag.screens>2)flag.screens = 0;
     lcd.setShiftPosition (screens [flag.screens]);
     if (flag.screens)
-    {
-      for (uint8_t i=0;i<2;++i)
+    {     
+      if (flag.screens ==2)
       {
-        lcd.setPosition (ScreenVal[flag.screens][i]->pos.row, ScreenVal[flag.screens][flag.setShortPress]->pos.coloumn);
-        value.parsDec16 (ScreenVal[flag.screens][i]->value, 3);
-        lcd.sendString (value.getElement(2));
+        lcd.setPosition (ScreenVal[flag.screens][0]->pos.row, ScreenVal[flag.screens][0]->pos.coloumn);
+        value.parsDec16 (ScreenVal[flag.screens][0]->value, 2);
+        lcd.sendString (1, value.getElement(3));
+        lcd.data ('.');
+        lcd.sendString (1, value.getElement(4));
+        lcd.setPosition (ScreenVal[flag.screens][1]->pos.row, ScreenVal[flag.screens][1]->pos.coloumn);
+        value.parsDec16 (ScreenVal[flag.screens][1]->value, 2);
+        lcd.sendString (1, value.getElement(3));
+      }
+      else
+      {
+        for (uint8_t i=0;i<2;++i)
+        {   
+          lcd.setPosition (ScreenVal[flag.screens][i]->pos.row, ScreenVal[flag.screens][i]->pos.coloumn);
+          value.parsDec16 (ScreenVal[flag.screens][i]->value, 2);
+          lcd.sendString (1, value.getElement(3));
+          lcd.data ('.');
+          lcd.sendString (1, value.getElement(4));
+        }
       }
     }
   }
@@ -410,9 +408,18 @@ void minusPress ()
       {
         --ptr->value;
         *ptr->eepromPtr = ptr->value;
-        lcd.setPosition (ScreenVal[flag.screens][flag.setShortPress]->pos.row, ScreenVal[flag.screens][flag.setShortPress]->pos.coloumn);
-        value.parsDec16 (ScreenVal[flag.screens][flag.setShortPress]->value, 3);
-        lcd.sendString (value.getElement(2));
+      }
+      lcd.setPosition (ScreenVal[flag.screens][flag.setShortPress]->pos.row, ScreenVal[flag.screens][flag.setShortPress]->pos.coloumn);
+      value.parsDec16 (ScreenVal[flag.screens][flag.setShortPress]->value, 2);
+      if (flag.screens==2&&flag.setShortPress==1)
+      {
+        lcd.sendString (2, value.getElement(3));
+      }
+      else
+      {     
+        lcd.sendString (1, value.getElement(3));
+        lcd.data ('.');
+        lcd.sendString (1, value.getElement(4));
       }
     }
   }
@@ -431,8 +438,17 @@ void plusPress ()
         
       }
       lcd.setPosition (ScreenVal[flag.screens][flag.setShortPress]->pos.row, ScreenVal[flag.screens][flag.setShortPress]->pos.coloumn);
-      value.parsDec16 (ScreenVal[flag.screens][flag.setShortPress]->value, 3);
-      lcd.sendString (value.getElement(2));
+      value.parsDec16 (ScreenVal[flag.screens][flag.setShortPress]->value, 2);
+      if (flag.screens==2&&flag.setShortPress==1)
+      {
+        lcd.sendString (2, value.getElement(3));
+      }
+      else
+      {     
+        lcd.sendString (1, value.getElement(3));
+        lcd.data ('.');
+        lcd.sendString (1, value.getElement(4));
+      }
     }
   }
 }

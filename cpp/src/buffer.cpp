@@ -64,14 +64,14 @@ void Buffer::parsDec16 (const uint16_t & val, uint8_t n)
     for (arrVal[k+i]=0;temp>=divider[k+i]; ++arrVal[k+i]) temp-= divider[k+i];
     arr [k+i] = font [arrVal[k+i]];
   }
-  arrVal [4] = val%10;
-  arr [4] = font [arrVal [4]];
+  arr [4] = val%10;
+  /*arr [4] = font [arrVal [4]];
   if (val < 100) arr [2] = font [10];
   if (val < 10) 
   {
     arr [2] = font [10];
     arr [3] = font [10];
-  }
+  }*/
 }
 
 void Buffer::parsFloat (const uint16_t & val)
