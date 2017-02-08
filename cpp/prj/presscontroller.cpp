@@ -137,6 +137,8 @@ INTERRUPT_HANDLER(adc, ADC1_EOC_vector)
   uint16_t result=0;
   static uint16_t dryCounter = 0;
   sensor.clearEoc ();
+  adcTrigger.clearFlag ();
+  TIM1->SR1 &= ~TIM1_SR1_TIF ;
   sensor.getBuffer (adcData);
   for (uint8_t i=0;i<10;++i)
   {
@@ -154,18 +156,7 @@ INTERRUPT_HANDLER(adc, ADC1_EOC_vector)
     lcd.data ('.');
     lcd.sendString (1, value.getElement(4));
   }
-  //включение и выключение по верхнему и нижнему уровней
-  if (!flag.dry)
-  {
-    if (currPress.value<lowPress.value)
-    {
-      triac.set ();
-    }
-    else if (currPress.value>highPress.value)
-    {
-      triac.clear ();
-    }      
-  }
+
   //определение сухого хода
   if (currPress.value<dryPress.value&&!flag.dry)
   {
@@ -191,11 +182,24 @@ INTERRUPT_HANDLER(adc, ADC1_EOC_vector)
       dryCounter = 0;
     }
   }
+    //включение и выключение по верхнему и нижнему уровней
+  if (!flag.dry)
+  {
+    if (currPress.value<lowPress.value)
+    {
+      triac.set ();
+    }
+    else if (currPress.value>highPress.value)
+    {
+      triac.clear ();
+    }      
+  }
 }
 
 INTERRUPT_HANDLER(TIM4_OVR_UIF, TIM4_OVR_UIF_vector)
 {
   timer4.clearFlag();
+  
   
   set.scanButton ();
   set.scanAction();

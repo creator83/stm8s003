@@ -64,7 +64,7 @@ void Atimer::stop ()
 
 void Atimer::clearFlag()
 {
-	
+  TIM1->SR1 &= ~TIM1_SR1_UIF;
 }
 
 void Atimer::setMode (mode m)
