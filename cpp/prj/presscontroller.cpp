@@ -45,6 +45,17 @@ const char highChar[8] =
 0x04,
 };
 
+const char cursorChar[8] =
+{ 
+0x18,
+0x1C,
+0x1E,
+0x1F,
+0x1F,
+0x1E,
+0x1C,
+0x18,
+};
 enum newChar {up, down, cursor};
 typedef void (*PtrF)();
 
@@ -56,7 +67,7 @@ Button plus (Gpio::B, 5, Button::oneAction);
 Button minus (Gpio::B, 4, Button::oneAction);
 Buffer value;
 Adc sensor(Adc::channel2);
-Atimer adcTrigger (16000);
+//Atimer adcTrigger (16000);
 Pin triac (Gpio::D, 1, Gpio::lowSpeed);
 
 
@@ -133,28 +144,52 @@ uint16_t adcData [10];
 
 INTERRUPT_HANDLER(adc, ADC1_EOC_vector)
 {
-  static uint8_t i=0;
   uint16_t result=0;
-  static uint16_t dryCounter = 0;
   sensor.clearEoc ();
-  adcTrigger.clearFlag ();
   TIM1->SR1 &= ~TIM1_SR1_TIF ;
   sensor.getBuffer (adcData);
   for (uint8_t i=0;i<10;++i)
   {
     result += adcData[i];
   }
-  currPress.value = result/50;
-  ++i;
+  currPress.value = result/200;
+
   //draw value
   //main screen
-  if (i>2)
+  
+}
+
+INTERRUPT_HANDLER(TIM4_OVR_UIF, TIM4_OVR_UIF_vector)
+{
+  static struct counters
+  {
+    uint16_t adc;
+    uint16_t lcd;
+    uint16_t dry;
+  }counter={0,0,0};
+  timer4.clearFlag();
+  counter.adc++;
+  counter.lcd++;
+  
+  set.scanButton ();
+  set.scanAction();
+    
+     //опрос кнопок +, - при длительном нажатии кнопки
+    if (flag.setLongPress)
+    {
+      plus.scanButton ();
+      minus.scanButton ();
+      plus.scanAction();
+      minus.scanAction();
+    }  
+    if (counter.lcd>300)
   {
     lcd.setPosition (currPress.pos.row, currPress.pos.coloumn);
     value.parsDec16 (currPress.value, 2);
     lcd.sendString (1, value.getElement(3));
     lcd.data ('.');
     lcd.sendString (1, value.getElement(4));
+    counter.lcd = 0;
   }
 
   //определение сухого хода
@@ -168,18 +203,18 @@ INTERRUPT_HANDLER(adc, ADC1_EOC_vector)
   //работа сухого хода
   if (flag.dry) 
   {
-    ++dryCounter;
-    if (dryCounter>(period.value*600)&&!flag.alarm)
+    ++counter.dry;
+    if (counter.dry>(period.value*600)&&!flag.alarm)
     {
       triac.set ();
       flag.alarm = 1;
-      dryCounter = 0;
+      counter.dry = 0;
     }
-    else if (dryCounter>200&&flag.alarm)
+    else if (counter.dry>200&&flag.alarm)
     {
       triac.clear ();
       flag.alarm = 0;
-      dryCounter = 0;
+      counter.dry = 0;
     }
   }
     //включение и выключение по верхнему и нижнему уровней
@@ -196,23 +231,6 @@ INTERRUPT_HANDLER(adc, ADC1_EOC_vector)
   }
 }
 
-INTERRUPT_HANDLER(TIM4_OVR_UIF, TIM4_OVR_UIF_vector)
-{
-  timer4.clearFlag();
-  
-  
-  set.scanButton ();
-  set.scanAction();
-    
-     //опрос кнопок +, - при длительном нажатии кнопки
-    if (flag.setLongPress)
-    {
-      plus.scanButton ();
-      minus.scanButton ();
-      plus.scanAction();
-      minus.scanAction();
-    }  
-}
 
 void timer4_init ();
 
@@ -232,7 +250,8 @@ int main()
   *dryValEeprom = dryVal; 
   *periodValEeprom = periodVal; */
   //============================
-  
+  value.setFont (Buffer::Array_char);
+  CFG->GCR |= CFG_GCR_SWD;
   mainScreen ();
   set1Screen ();
   set2Screen ();
@@ -247,17 +266,17 @@ int main()
   plus.setshortPressAction (plusPress);
   minus.setshortPressAction (minusPress);
   
-  value.setFont (Buffer::Array_char);
+  
   initPosition ();
   initDataPosition ();
-  //sensor.setContiniusMode ();
+  sensor.setContiniusMode ();
   
-  adcTrigger.setArr (100);
+  //adcTrigger.setArr (100);
   sensor.setBuffer ();
-  sensor.setTrigger (Adc::timer);
+  //sensor.setTrigger (Adc::timer);
   sensor.enableInterrupt ();
-  adcTrigger.start ();
-  //sensor.start ();
+  //adcTrigger.start ();
+  sensor.start ();
   timer4_init ();
   
   while (1)
@@ -323,6 +342,7 @@ void set1Screen ()
 {
   lcd.newChar (highChar, up);
   lcd.newChar (lowChar, down);
+  lcd.newChar (cursorChar, cursor);
   lcd.setPosition (0, 9);
   lcd.data ('P');
   lcd.data (up);
@@ -377,7 +397,7 @@ void shortSetPress ()
         lcd.sendString (1, value.getElement(4));
         lcd.setPosition (ScreenVal[flag.screens][1]->pos.row, ScreenVal[flag.screens][1]->pos.coloumn);
         value.parsDec16 (ScreenVal[flag.screens][1]->value, 2);
-        lcd.sendString (1, value.getElement(3));
+        lcd.sendString (2, value.getElement(3));
       }
       else
       {

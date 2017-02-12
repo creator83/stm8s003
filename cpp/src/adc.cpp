@@ -7,7 +7,7 @@ Adc::Adc (channel ch_)
 :adcPin (adcPort [ch_], adcP [ch_], Gpio::Floating)
 {
   ch = ch_;
-  ADC1->CR1 = ADC1_CR1_ADON;
+  ADC1->CR1 = ADC1_CR1_ADON|(1 << 6);
   ADC1->CR2 = ADC1_CR2_ALIGN;
   ADC1->CR3 = 0;
   ADC1->CSR = ch;
@@ -51,7 +51,14 @@ void Adc::setBuffer ()
 
 void Adc::setTrigger (trigger t)
 {
-  TIM1->CR2 = 0x20; 
+  //TIM1->CR2 = (4<<4) & TIM1_CR2_MMS;
+  //TIM1->CCMR1= (6<<4) & TIM1_CCMR_OCM;
+  //TIM1->IER|= TIM1_IER_CC1IE;	
+  //TIM1->CCER1|= TIM1_CCER1_CC1P;			// OC1 negative polarity
+  //TIM1->CCER1|= TIM1_CCER1_CC1E;
+  //TIM1->BKR|= TIM1_BKR_MOE;
+  TIM1->CR2 =  2 << 4;
+  TIM1->SMCR |= TIM1_SMCR_MSM;
   ADC1->CR2 &= ~ ADC1_CR2_EXTSEL;
   ADC1->CR2 |= t;
   ADC1->CR2 |= ADC1_CR2_EXTTRIG;
@@ -69,25 +76,25 @@ void Adc::clearEoc ()
 
 void Adc::getBuffer (uint16_t *dta)
 {
-  dta [0] = ADC1->DB0RL;
-  dta [0] |= ADC1->DB0RH<<8;
-  dta [1] = ADC1->DB1RL;
-  dta [1] |= ADC1->DB1RH<<8;
-  dta [2] = ADC1->DB2RL;
-  dta [2] |= ADC1->DB2RH<<8;
-  dta [3] = ADC1->DB3RL;
-  dta [3] |= ADC1->DB3RH<<8;
-  dta [4] = ADC1->DB4RL;
-  dta [4] |= ADC1->DB4RH<<8;
-  dta [5] = ADC1->DB5RL;
-  dta [5] |= ADC1->DB5RH<<8;
-  dta [6] = ADC1->DB6RL;
-  dta [6] |= ADC1->DB6RH<<8;
-  dta [7] = ADC1->DB7RL;
-  dta [7] |= ADC1->DB7RH<<8;
-  dta [8] = ADC1->DB8RL;
-  dta [8] |= ADC1->DB8RH<<8;
-  dta [9] = ADC1->DB9RL;
-  dta [9] |= ADC1->DB9RH<<8;
+  dta [0] = ADC1->DB0RH<<8;
+  dta [0] |= ADC1->DB0RL;
+  dta [1] = ADC1->DB1RH<<8;
+  dta [1] |= ADC1->DB1RL;
+  dta [2] = ADC1->DB2RH<<8;
+  dta [2] |= ADC1->DB2RL;
+  dta [3] = ADC1->DB3RH<<8;
+  dta [3] |= ADC1->DB3RL;
+  dta [4] = ADC1->DB4RH<<8;
+  dta [4] |= ADC1->DB4RL;
+  dta [5] = ADC1->DB5RH<<8;
+  dta [5] |= ADC1->DB5RL;
+  dta [6] = ADC1->DB6RH<<8;
+  dta [6] |= ADC1->DB6RL;
+  dta [7] = ADC1->DB7RH<<8;
+  dta [7] |= ADC1->DB7RL;
+  dta [8] = ADC1->DB8RH<<8;
+  dta [8] |= ADC1->DB8RL;
+  dta [9] = ADC1->DB9RH<<8;
+  dta [9] |= ADC1->DB9RL;
 }
 

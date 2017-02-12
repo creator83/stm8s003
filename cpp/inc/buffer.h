@@ -26,6 +26,7 @@ public:
   Buffer();
   void parsDec16 (const uint16_t &);
   void parsDec16 (const uint16_t &, uint8_t n);
+  void parsDec16 (const uint16_t & val, uint8_t n, uint8_t m);
   void parsFloat (const uint16_t &);
   void parsHex32 (uint32_t value);
   bool setElement (uint8_t el, uint8_t val);
