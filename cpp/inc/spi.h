@@ -22,6 +22,7 @@ public:
   Spi(Division div, Cpol cpl = neg, Cpha cph = falling, Role r = master);
   void putData (uint8_t data);
   uint8_t getData ();
+  uint8_t transfer (uint8_t);
   bool flagBsy ();
   bool flagTxe ();
   bool flagRxne ();

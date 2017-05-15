@@ -17,6 +17,13 @@ Spi::Spi(Division div, Cpol cpl , Cpha cph , Role r )
   SPI->CR1 |= SPI_CR1_SPE;
 }
 
+uint8_t Spi::transfer (uint8_t data)
+{
+  putData (data);
+  while (!flagRxne());
+  return getData();
+}
+
 
 
 

@@ -119,6 +119,7 @@ class Nrf24l01
 public:
   uint8_t count;
   enum mode {TXmode , RXmode, PWR_DOWN, STANDBY_1, STANDBY_2};  
+  //enum interrupt {};
 private:
   static uint8_t selfAddress [5];
   static uint8_t remoteAddress [5];
@@ -135,14 +136,13 @@ public:
   uint8_t read_data ();
   void rxState ();
   void txState ();
-  void command (uint8_t com);
-  void comm (uint8_t com);
+  uint8_t command (uint8_t com);
   uint8_t readRegister (uint8_t reg);
-  uint8_t readStatus ();
   void writeRegister (uint8_t reg , uint8_t val);
   void writeRegister (uint8_t reg , uint8_t * val, uint8_t);
   void changeBit (uint8_t reg, uint8_t bit, bool state_);
   void sendByte (uint8_t val);
+  void sendData (uint8_t *, uint8_t n);
   uint8_t receiveByte ();
   uint8_t get_status ();
   bool init ();
