@@ -14,6 +14,8 @@ Gtimer timer2;
 Nrf24l01 radio;
 SoftI2c i2cDriver (Gpio::A, 1, Gpio::A, 2);
 Sht20 sensor (&i2cDriver);
+Pin ledOk (Gpio::A, 2, Gpio::lowSpeed);
+Pin ledErr (Gpio::A, 3, Gpio::lowSpeed);
 union 
 {
   uint16_t data16 [2];
@@ -22,7 +24,16 @@ union
 
 INTERRUPT_HANDLER(radioInterrupt, EXTI0_vector)
 {
-  
+  uint8_t status = radio.command (NOP);
+  if (status & 1 << TX_DS)
+  {
+    ledOk.set ();
+  }
+  else if (status & 1 << MAX_RT)
+  {
+    ledErr.set();
+  }
+  radio.writeRegister (STATUS, status);
 }
 
 INTERRUPT_HANDLER(backCounter, TIM2_OVR_UIF_vector)
