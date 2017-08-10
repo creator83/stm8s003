@@ -15,10 +15,12 @@
 /*const uint8_t highVal = 28;
 const uint8_t lowVal = 18;
 const uint8_t dryVal = 4;
-const uint8_t periodVal = 4;*/
+const uint8_t periodVal = 4;
+*/
+const uint8_t k = 200;
 //============================
 
-uint8_t *highValEeprom, *lowValEeprom, *dryValEeprom, *periodValEeprom;
+uint8_t *highValEeprom, *lowValEeprom, *dryValEeprom, *kValEeprom, *periodValEeprom;
 
 
 const char lowChar[8] =
@@ -84,7 +86,7 @@ struct position
 {
   uint8_t row;
   uint8_t coloumn;
-}highPressCursor, lowPressCursor, dryPressCursor, periodCursor;
+}highPressCursor, lowPressCursor, dryPressCursor, periodCursor, kCursor;
 
 position * ScreenCursor [3][2] = {
   {0,0},
@@ -99,15 +101,16 @@ struct data
   uint8_t lowLimit;
   uint8_t * eepromPtr;
   position pos;	
-}currPress, highPress, lowPress, dryPress, period;
+}currPress, highPress, lowPress, dryPress, period, kAdc;
 
 
 
 
-data * ScreenVal [3] [2]= {
+data * ScreenVal [4] [2]= {
  {&currPress, 0},
  {&highPress, &lowPress},
- {&dryPress, &period}
+ {&dryPress, &period},
+ {&kAdc,0}
 };
 
 data * setupVal [3] [2]= {
@@ -122,6 +125,7 @@ uint8_t screens [3] = {0,8,16};
 void mainScreen ();
 void set1Screen ();
 void set2Screen ();
+void set3Screen ();
 void changeScreen ();
 void getMainScreen ();
 void getSet1Screen ();
@@ -242,6 +246,7 @@ int main()
   lowValEeprom = (uint8_t*)0x004001; 
   dryValEeprom = (uint8_t*)0x004002; 
   periodValEeprom = (uint8_t*)0x004003; 
+  kValEeprom = (uint8_t*)0x004004;
  
   //Should comment after 1st init
   //============================
@@ -249,12 +254,14 @@ int main()
   *lowValEeprom = lowVal; 
   *dryValEeprom = dryVal; 
   *periodValEeprom = periodVal; */
+  *kValEeprom = k;
   //============================
   value.setFont (Buffer::Array_char);
   CFG->GCR |= CFG_GCR_SWD;
   mainScreen ();
   set1Screen ();
   set2Screen ();
+  set3Screen ();
   set.setLongLimit (1000);
   set.setShortLimit (10); 
   plus.setShortLimit (3);
@@ -295,6 +302,8 @@ void initPosition ()
   dryPressCursor.row = 0;
   periodCursor.coloumn = 16;
   periodCursor.row = 1;
+  kCursor.coloumn = 24;
+  kCursor.row = 1;
 }
 
 void initDataPosition ()
@@ -326,6 +335,11 @@ void initDataPosition ()
   period.lowLimit = 1;
   period.highLimit = 20;
   period.eepromPtr = periodValEeprom;
+  kAdc.pos.coloumn = 27;
+  kAdc.pos.row = 1;
+  kAdc.lowLimit = 150;
+  kAdc.highLimit = 254;
+  kAdc.eepromPtr = kValEeprom;
 }
 
 void mainScreen ()
@@ -359,6 +373,14 @@ void set2Screen ()
   lcd.sendString ("#P=");
   lcd.setPosition (1, 18);
   lcd.sendString ("T=");
+}
+
+void set3Screen ()
+{
+  lcd.setPosition (0, 25);
+  lcd.sendString ("Adc div");
+  lcd.setPosition (1, 25);
+  lcd.sendString ("K=");
 }
 
 void longSetPress ()
