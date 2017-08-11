@@ -21,6 +21,7 @@ const uint8_t k = 200;
 //============================
 
 uint8_t *highValEeprom, *lowValEeprom, *dryValEeprom, *kValEeprom, *periodValEeprom;
+const uint8_t nScreens = 3;
 
 
 const char lowChar[8] =
@@ -126,7 +127,7 @@ void mainScreen ();
 void set1Screen ();
 void set2Screen ();
 void set3Screen ();
-void changeScreen ();
+//void changeScreen ();
 void getMainScreen ();
 void getSet1Screen ();
 void getSet2Screen ();
@@ -156,7 +157,7 @@ INTERRUPT_HANDLER(adc, ADC1_EOC_vector)
   {
     result += adcData[i];
   }
-  currPress.value = result/200;
+  currPress.value = result/kAdc.value;
 
   //draw value
   //main screen
@@ -406,7 +407,7 @@ void shortSetPress ()
   if (!flag.setLongPress) 
   {
     ++flag.screens;
-    if (flag.screens>2)flag.screens = 0;
+    if (flag.screens>nScreens)flag.screens = 0;
     lcd.setShiftPosition (screens [flag.screens]);
     if (flag.screens)
     {     
