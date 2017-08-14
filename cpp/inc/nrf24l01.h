@@ -119,6 +119,8 @@ class Nrf24l01
 public:
   uint8_t count;
   enum mode {TXmode , RXmode, PWR_DOWN, STANDBY_1, STANDBY_2};  
+  enum amp {};
+  enum pipe {};
   //enum interrupt {};
 private:
   static uint8_t selfAddress [5];
@@ -146,6 +148,10 @@ public:
   uint8_t receiveByte ();
   uint8_t get_status ();
   bool init ();
+  void setAmp (amp);
+  void setRxPipe(pipe);
+  void setTxPipe(pipe);
+  void setSelfAddress ();
   //uint8_t state;
 
 private:
