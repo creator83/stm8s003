@@ -6,20 +6,20 @@
 
 
 
-tact frq;
-uart uart1 (uart::b9600);
-nrf24l01 radio;
+Tact frq;
+Uart uart1 (Uart::b9600);
+Nrf24l01 radio;
 const uint8_t led = 3;
 Gpio D (Gpio::D);
 
 
 INTERRUPT_HANDLER(EXTA_i, EXTI0_vector)
 {
-   uint8_t status = radio.get_status ();
-   uart1.transmit (status);
-   radio.w_reg (STATUS, status);
-   status = radio.get_status ();
-   uart1.transmit (status);
+  uint8_t status = radio.get_status ();
+  uart1.transmit (status);
+  radio.w_reg (STATUS, status);
+  status = radio.get_status ();
+  uart1.transmit (status);
   D.setPin (led);
   delay_ms (1500);
   D.clearPin (led);
