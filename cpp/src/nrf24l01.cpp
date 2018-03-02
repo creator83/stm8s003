@@ -4,10 +4,9 @@ uint8_t Nrf24l01::selfAddress[5] = {0xE7, 0xE7, 0xE7, 0xE7, 0xE7};
 
 uint8_t Nrf24l01::remoteAddress[5] = {0xC2, 0xC2, 0xC2, 0xC2, 0xC2};
 
-Nrf24l01::Nrf24l01 ()
-:spi1 (Spi::div64) , cs (nrf24Def::csPort, nrf24Def::csPin, Gpio::lowSpeed) , ce (nrf24Def::cePort, nrf24Def::cePin, Gpio::lowSpeed), irq (nrf24Def::irqPort , nrf24Def::irqPin, Intrpt::falling)
-{
-  cs.set ();
+Nrf24l01::Nrf24l01 (Pin & cs_, Pin & ce_, Intrpt & irq_)
+:spi1 (Spi::div64) , cs (&cs_) , ce (&ce_), irq (&irq_){
+  cs->set ();
   chan = 3;
   //checking
     //===Standby-1 mode===//
@@ -47,58 +46,56 @@ Nrf24l01::Nrf24l01 ()
 
 }
 
-void Nrf24l01::rxState ()
-{
+uint8_t Nrf24l01::readData (){
+  return false;
+}
+
+void Nrf24l01::rxState (){
   //переключение в RX Mode
   writeRegister (CONFIG, (1 <<PWR_UP | 1 << EN_CRC|/*1 << CRCO|*/ 1 << PRIM_RX));
   //changeBit (CONFIG, PRIM_RX, 1);
-  ce.set();
+  ce->set();
   delay_us(140);
 }
 
-void Nrf24l01::txState ()
-{
-  ce.clear ();
+void Nrf24l01::txState (){
+  ce->clear ();
   writeRegister (CONFIG, (1 <<PWR_UP | 1 << EN_CRC));
-  ce.set ();
+  ce->set ();
   delay_us(15);
-  ce.clear ();
+  ce->clear ();
   delay_us(140);
 }
 
-uint8_t Nrf24l01::command (uint8_t com)
-{
-  cs.clear ();
-  uint8_t status = spi1.transfer (R_REGISTER|com);
+uint8_t Nrf24l01::command (uint8_t com){
+  cs->clear ();
+  uint8_t status = spi1.transfer (com);
   while (spi1.flagBsy ());
-  cs.set ();
+  cs->set ();
   return status;
 }
 
-uint8_t Nrf24l01::readRegister (uint8_t reg)
-{
-  cs.clear ();
+uint8_t Nrf24l01::readRegister (uint8_t reg){
+  cs->clear ();
   uint8_t status = spi1.transfer (R_REGISTER|reg);
   while (!spi1.flagTxe());
   uint8_t reg_val = spi1.transfer(NOP);
   while (spi1.flagBsy ());
-  cs.set ();
+  cs->set ();
   return reg_val;   
 }
 
-void Nrf24l01::writeRegister (uint8_t reg , uint8_t val)
-{
-  cs.clear ();
+void Nrf24l01::writeRegister (uint8_t reg , uint8_t val){
+  cs->clear ();
   uint8_t status = spi1.transfer(W_REGISTER|reg);
   while (!spi1.flagTxe());
   spi1.transfer (val); 
   while (spi1.flagBsy ());
-  cs.set ();
+  cs->set ();
 }
 
-void Nrf24l01::writeRegister (uint8_t reg , uint8_t * val, uint8_t count)
-{
-  cs.clear ();
+void Nrf24l01::writeRegister (uint8_t reg , uint8_t * val, uint8_t count){
+  cs->clear ();
   uint8_t status = spi1.transfer(W_REGISTER|reg);
   while (count--)
   {
@@ -106,33 +103,29 @@ void Nrf24l01::writeRegister (uint8_t reg , uint8_t * val, uint8_t count)
     spi1.transfer (*val++);  
   }
   while (spi1.flagBsy ());
-  cs.set ();
+  cs->set ();
 }
 
-void Nrf24l01::changeBit (uint8_t reg, uint8_t bit, bool state)
-{
+void Nrf24l01::changeBit (uint8_t reg, uint8_t bit, bool state){
   uint8_t val = readRegister (reg);
-  
   val = val&(~(1 << bit));
   val = val|(state << bit);
   writeRegister (reg, val);
 }
 
-void Nrf24l01::sendByte (uint8_t val)
-{
-  cs.clear ();
+void Nrf24l01::sendByte (uint8_t val){
+  cs->clear ();
   uint8_t status = spi1.transfer(W_TX_PAYLOAD);
   while (!spi1.flagTxe());
   spi1.transfer (val);
   while (spi1.flagBsy ());
-  cs.set ();
+  cs->set ();
   txState ();
   rxState ();
 }
 
-void Nrf24l01::sendData (uint8_t *data, uint8_t n)
-{
-  cs.clear ();
+void Nrf24l01::sendData (uint8_t *data, uint8_t n){
+  cs->clear ();
   uint8_t status = spi1.transfer(W_TX_PAYLOAD);
   while (n--)
   {
@@ -140,9 +133,23 @@ void Nrf24l01::sendData (uint8_t *data, uint8_t n)
     spi1.transfer (*data++);
   }
   while (spi1.flagBsy ());
-  cs.set ();
+  cs->set ();
   txState ();
-  rxState ();
+  rxState ();  
+}
+
+uint8_t Nrf24l01::receiveByte (){
+  cs->clear ();
+  uint8_t status = spi1.transfer(R_RX_PAYLOAD);
+  while (!spi1.flagTxe());
+  uint8_t value = spi1.transfer (NOP);
+  while (spi1.flagBsy ());
+  cs->set ();
+  return value;
+}
+
+uint8_t Nrf24l01::getStatus (){
+  return readRegister (NOP);
 }
 
 bool Nrf24l01::init ()
@@ -162,16 +169,7 @@ bool Nrf24l01::init ()
   return false;
 }
 
-uint8_t Nrf24l01::receiveByte ()
-{
-  cs.clear ();
-  uint8_t status = spi1.transfer(R_RX_PAYLOAD);
-  while (!spi1.flagTxe());
-  uint8_t value = spi1.transfer (NOP);
-  while (spi1.flagBsy ());
-  cs.set ();
-  return value;
-}
+
 
 
 

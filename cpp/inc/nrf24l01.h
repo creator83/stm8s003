@@ -7,20 +7,6 @@
 #ifndef NRF24L01_H
 #define NRF24L01_H
 
-
-namespace nrf24Def
-{
-  //CE
-  const Gpio::Port cePort = Gpio::C;
-  const uint8_t cePin = 3;
-  //CS
-  const Gpio::Port csPort = Gpio::C;
-  const uint8_t csPin = 4;
-  //IRQ
-  const Gpio::Port irqPort = Gpio::A;
-  const uint8_t irqPin = 1;
-}
-
 /* Register Map (регистры) стр 53-58 */
 const uint8_t CONFIG     = 0x00;
 const uint8_t EN_AA      = 0x01;
@@ -126,16 +112,15 @@ private:
   static uint8_t selfAddress [5];
   static uint8_t remoteAddress [5];
   mode m;
-  Pin cs, ce;
+  Pin * cs, * ce;
   Spi spi1;
-  Intrpt irq;
+  Intrpt * irq;
   uint8_t chan;
   //functions
 public:
 
-  Nrf24l01 ();
-  bool startup;
-  uint8_t read_data ();
+  Nrf24l01 (Pin & cs_, Pin & ce_, Intrpt & irq_);
+  uint8_t readData ();
   void rxState ();
   void txState ();
   uint8_t command (uint8_t com);
@@ -146,7 +131,7 @@ public:
   void sendByte (uint8_t val);
   void sendData (uint8_t *, uint8_t n);
   uint8_t receiveByte ();
-  uint8_t get_status ();
+  uint8_t getStatus ();
   bool init ();
   void setAmp (amp);
   void setRxPipe(pipe);
