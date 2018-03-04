@@ -5,7 +5,6 @@
 #include "nrf24l01.h"
 #include "pin.h"
 
-
 Tact frq;
 Nrf24l01 radio;
 
