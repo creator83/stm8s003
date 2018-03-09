@@ -2,12 +2,11 @@
 
 
 Spi::Spi(Division div, Cpol cpl , Cpha cph , Role r )
-:pin(Gpio::C)
+:sck(Gpio::C, SCK , Gpio::highSpeed), mosi(Gpio::C, MOSI , Gpio::highSpeed), 
+miso(Gpio::C, MISO, Gpio::Pullup)
 {
+  //turn on Spi takt
   CLK->PCKENR1 |= CLK_PCKENR1_SPI;
-  pin.setOutPin (SCK , Gpio::highSpeed);
-  pin.setOutPin (MOSI , Gpio::highSpeed);
-  pin.setInPin (MISO,Gpio::Pullup);
   
   //настройка SPI
   SPI->CR1 |= div << 3;

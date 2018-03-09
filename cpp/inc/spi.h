@@ -1,5 +1,5 @@
 #include "stm8s.h"
-#include "gpio.h"
+#include "pin.h"
 
 #ifndef SPI_H
 #define SPI_H
@@ -15,7 +15,7 @@ public:
   enum Cpha {falling, rising};
   enum pinDef {SCK=5, MOSI , MISO };
 private:
-  Gpio pin;
+  Pin sck, mosi, miso;
   
 //function
 public:

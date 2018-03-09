@@ -11,6 +11,9 @@ Nrf24l01::Nrf24l01 (Pin & cs_, Pin & ce_, Intrpt & irq_)
   //checking
     //===Standby-1 mode===//
   delay_ms (15);
+  cs->clear();
+  spi1.transfer(0xF0);
+  cs->set();
   writeRegister (CONFIG, (1 <<PWR_UP | 1 << EN_CRC));
   delay_ms (2);
   rxState ();
@@ -21,7 +24,7 @@ Nrf24l01::Nrf24l01 (Pin & cs_, Pin & ce_, Intrpt & irq_)
   //settings register
   command (FLUSH_TX);
   command (FLUSH_RX);
-  uint8_t status = command(NOP);
+  uint8_t status = getStatus();
   writeRegister (STATUS, status);
   writeRegister(RX_PW_P0, 1);
   /*
@@ -149,7 +152,11 @@ uint8_t Nrf24l01::receiveByte (){
 }
 
 uint8_t Nrf24l01::getStatus (){
-  return readRegister (NOP);
+  cs->clear ();
+  uint8_t status = spi1.transfer (NOP);
+  while (spi1.flagBsy ());
+  cs->set ();
+  return status;  
 }
 
 bool Nrf24l01::init ()

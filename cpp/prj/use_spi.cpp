@@ -3,33 +3,30 @@
 #include "delay.h"
 #include "tact.h"
 
-tact frq;
-spi spi1 (spi::div128);
+Tact frq;
+Spi spi1 (Spi::div128);
+Pin cs (Gpio::C, 4, Gpio::lowSpeed);
 
 void spi_transmitte_byte (uint8_t d)
 {
-  spi1.Clear_CS();
-  spi1.put_data (d);
-  while (spi1.flag_bsy ());
-  spi1.Set_CS ();
+	cs.clear();
+	spi1.transfer (d);
+	cs.set();
 }
 
 
 int main()
 {
-  
-  while (1)
-  {
-    for (uint8_t i=0;i<8;++i)
-    {
-      spi_transmitte_byte (1<<i);
-      delay_ms (100);
-    }
-    for (uint8_t i=6;i>0;--i)
-    {
-      spi_transmitte_byte (1<<i);
-      delay_ms (100);
-    }    
+	cs.set();
+	while (1){
+		for (uint8_t i=0;i<8;++i){
+		spi_transmitte_byte (1<<i);
+		delay_ms (100);
+	}
+	for (uint8_t i=6;i>0;--i){
+		spi_transmitte_byte (1<<i);
+		delay_ms (100);
+	}    
 
  /*     
     delay_ms (200);
